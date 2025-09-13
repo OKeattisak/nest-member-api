@@ -1,0 +1,1 @@
+export { Privilege, PrivilegeProps, UpdatePrivilegeData } from './privilege.entity';

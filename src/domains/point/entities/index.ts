@@ -1,0 +1,1 @@
+export { Point, PointProps, PointType } from './point.entity';
