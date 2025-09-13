@@ -19,7 +19,7 @@ A comprehensive NestJS application implementing a point-based membership system 
 - **ORM**: Prisma
 - **Authentication**: JWT with Passport
 - **Validation**: class-validator, class-transformer
-- **Configuration**: @nestjs/config with Joi validation
+- **Configuration**: @nestjs/config with Zod validation
 - **Testing**: Jest
 
 ## Project Structure

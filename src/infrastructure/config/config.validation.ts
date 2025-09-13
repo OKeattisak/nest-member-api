@@ -1,45 +1,47 @@
-import * as Joi from 'joi';
+import { z } from 'zod';
 
-export const configValidationSchema = Joi.object({
-  NODE_ENV: Joi.string()
-    .valid('development', 'production', 'test')
+export const configValidationSchema = z.object({
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
     .default('development'),
   
-  PORT: Joi.number()
-    .default(3000),
+  PORT: z
+    .string()
+    .default('3000')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().positive()),
   
-  DATABASE_URL: Joi.string()
-    .required()
-    .description('PostgreSQL database connection string'),
+  DATABASE_URL: z
+    .string()
+    .min(1, 'PostgreSQL database connection string is required'),
   
-  JWT_SECRET: Joi.string()
-    .required()
-    .min(32)
-    .description('JWT secret key for member authentication'),
+  JWT_SECRET: z
+    .string()
+    .min(32, 'JWT secret key for member authentication must be at least 32 characters'),
   
-  ADMIN_JWT_SECRET: Joi.string()
-    .required()
-    .min(32)
-    .description('JWT secret key for admin authentication'),
+  ADMIN_JWT_SECRET: z
+    .string()
+    .min(32, 'JWT secret key for admin authentication must be at least 32 characters'),
   
-  JWT_EXPIRES_IN: Joi.string()
-    .default('24h')
-    .description('JWT token expiration time for members'),
+  JWT_EXPIRES_IN: z
+    .string()
+    .default('24h'),
   
-  ADMIN_JWT_EXPIRES_IN: Joi.string()
-    .default('8h')
-    .description('JWT token expiration time for admins'),
+  ADMIN_JWT_EXPIRES_IN: z
+    .string()
+    .default('8h'),
   
-  BCRYPT_ROUNDS: Joi.number()
-    .integer()
-    .min(10)
-    .max(15)
-    .default(12)
-    .description('Number of bcrypt hashing rounds'),
+  BCRYPT_ROUNDS: z
+    .string()
+    .default('12')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(10).max(15)),
   
-  POINT_EXPIRATION_DAYS: Joi.number()
-    .integer()
-    .min(1)
-    .default(365)
-    .description('Default point expiration in days'),
+  POINT_EXPIRATION_DAYS: z
+    .string()
+    .default('365')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1)),
 });
+
+export type ConfigSchema = z.infer<typeof configValidationSchema>;

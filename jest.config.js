@@ -10,7 +10,7 @@ module.exports = {
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@/common/(.*)$': '<rootDir>/common/$1',
     '^@/domains/(.*)$': '<rootDir>/domains/$1',
