@@ -60,7 +60,7 @@
   - Write unit tests for member service business logic
   - _Requirements: 2.1, 2.2, 2.4, 2.6_
 
-- [ ] 9. Implement point management system
+- [x] 9. Implement point management system
   - Create point service with FIFO-based point addition and deduction logic
   - Implement point balance calculation excluding expired points
   - Add point transaction history functionality with pagination
