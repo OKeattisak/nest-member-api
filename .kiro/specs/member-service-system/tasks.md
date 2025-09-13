@@ -13,7 +13,7 @@
   - Set up database seeding scripts for development and testing
   - _Requirements: 3.1, 3.4, 5.1_
 
-- [ ] 3. Create core domain entities and value objects
+- [x] 3. Create core domain entities and value objects
   - Implement Member entity with domain methods for profile management and point calculations
   - Implement Point entity with FIFO expiration logic and domain methods
   - Implement Privilege entity with cost management and activation methods
@@ -21,7 +21,7 @@
   - Write unit tests for all domain entities and their business rules
   - _Requirements: 8.2, 8.3, 9.1, 9.4_
 
-- [ ] 4. Implement repository interfaces and Prisma implementations
+- [x] 4. Implement repository interfaces and Prisma implementations
   - Create repository interfaces for Member, Point, and Privilege domains
   - Implement Prisma-based repositories with CRUD operations
   - Add specialized query methods for point balance calculations and FIFO operations
