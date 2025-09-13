@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Member {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  passwordHash String
+  firstName   String
+  lastName    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  
+  points            Point[]
+  memberPrivileges  MemberPrivilege[]
+  
+  @@map("members")
+}
+
+model Point {
+  id          String    @id @default(cuid())
+  memberId    String
+  amount      Decimal   @db.Decimal(10, 2)
+  type        PointType
+  description String
+  expiresAt   DateTime?
+  isExpired   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  
+  member Member @relation(fields: [memberId], references: [id])
+  
+  @@map("points")
+}
+
+model Privilege {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String
+  pointCost    Decimal  @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  validityDays Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  memberPrivileges MemberPrivilege[]
+  
+  @@map("privileges")
+}
+
+model MemberPrivilege {
+  id          String    @id @default(cuid())
+  memberId    String
+  privilegeId String
+  grantedAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  
+  member    Member    @relation(fields: [memberId], references: [id])
+  privilege Privilege @relation(fields: [privilegeId], references: [id])
+  
+  @@unique([memberId, privilegeId])
+  @@map("member_privileges")
+}
+
+model Admin {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  passwordHash String
+  role        AdminRole @default(ADMIN)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("admins")
+}
+
+enum PointType {
+  EARNED
+  DEDUCTED
+  EXPIRED
+  EXCHANGED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
