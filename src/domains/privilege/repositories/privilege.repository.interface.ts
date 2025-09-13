@@ -6,6 +6,7 @@ export interface CreatePrivilegeData {
   description: string;
   pointCost: number;
   validityDays?: number;
+  isActive?: boolean;
 }
 
 export interface UpdatePrivilegeData {

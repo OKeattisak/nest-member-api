@@ -1,22 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MemberRepository } from './member.repository';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { createMockPrismaService, MockPrismaService } from '../../common/test-utils/prisma-mock.factory';
 
 describe('MemberRepository Unit Tests', () => {
   let repository: MemberRepository;
-  let prismaService: jest.Mocked<PrismaService>;
+  let mockPrismaService: MockPrismaService;
 
   beforeEach(async () => {
-    const mockPrismaService = {
-      member: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        findMany: jest.fn(),
-        count: jest.fn(),
-        findFirst: jest.fn(),
-      },
-    } as any;
+    mockPrismaService = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -29,7 +21,6 @@ describe('MemberRepository Unit Tests', () => {
     }).compile();
 
     repository = module.get<MemberRepository>(MemberRepository);
-    prismaService = module.get(PrismaService);
   });
 
   describe('findById', () => {
@@ -37,11 +28,11 @@ describe('MemberRepository Unit Tests', () => {
       const testId = 'test-id';
       const mockMember = { id: testId, email: 'test@example.com' };
       
-      prismaService.member.findUnique.mockResolvedValue(mockMember as any);
+      mockPrismaService.member.findUnique.mockResolvedValue(mockMember);
 
       const result = await repository.findById(testId);
 
-      expect(prismaService.member.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.findUnique).toHaveBeenCalledWith({
         where: { id: testId },
       });
       expect(result).toBe(mockMember);
@@ -53,11 +44,11 @@ describe('MemberRepository Unit Tests', () => {
       const testEmail = 'test@example.com';
       const mockMember = { id: 'test-id', email: testEmail };
       
-      prismaService.member.findUnique.mockResolvedValue(mockMember as any);
+      mockPrismaService.member.findUnique.mockResolvedValue(mockMember);
 
       const result = await repository.findByEmail(testEmail);
 
-      expect(prismaService.member.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.findUnique).toHaveBeenCalledWith({
         where: { email: testEmail },
       });
       expect(result).toBe(mockMember);
@@ -75,11 +66,11 @@ describe('MemberRepository Unit Tests', () => {
       };
       const mockMember = { id: 'test-id', ...createData };
       
-      prismaService.member.create.mockResolvedValue(mockMember as any);
+      mockPrismaService.member.create.mockResolvedValue(mockMember);
 
       const result = await repository.create(createData);
 
-      expect(prismaService.member.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.create).toHaveBeenCalledWith({
         data: createData,
       });
       expect(result).toBe(mockMember);
@@ -92,11 +83,11 @@ describe('MemberRepository Unit Tests', () => {
       const updateData = { firstName: 'Updated', lastName: 'Name' };
       const mockMember = { id: testId, ...updateData };
       
-      prismaService.member.update.mockResolvedValue(mockMember as any);
+      mockPrismaService.member.update.mockResolvedValue(mockMember);
 
       const result = await repository.update(testId, updateData);
 
-      expect(prismaService.member.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.update).toHaveBeenCalledWith({
         where: { id: testId },
         data: {
           ...updateData,
@@ -111,11 +102,11 @@ describe('MemberRepository Unit Tests', () => {
     it('should call prisma.member.update to set deletedAt and isActive', async () => {
       const testId = 'test-id';
       
-      prismaService.member.update.mockResolvedValue({} as any);
+      mockPrismaService.member.update.mockResolvedValue({});
 
       await repository.softDelete(testId);
 
-      expect(prismaService.member.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.update).toHaveBeenCalledWith({
         where: { id: testId },
         data: {
           deletedAt: expect.any(Date),
@@ -133,12 +124,12 @@ describe('MemberRepository Unit Tests', () => {
       const mockMembers = [{ id: '1', email: 'test@example.com' }];
       const mockCount = 1;
       
-      prismaService.member.findMany.mockResolvedValue(mockMembers as any);
-      prismaService.member.count.mockResolvedValue(mockCount);
+      mockPrismaService.member.findMany.mockResolvedValue(mockMembers);
+      mockPrismaService.member.count.mockResolvedValue(mockCount);
 
       const result = await repository.findMany(filters, pagination);
 
-      expect(prismaService.member.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.findMany).toHaveBeenCalledWith({
         where: {
           deletedAt: null,
           email: { contains: 'test', mode: 'insensitive' },
@@ -149,7 +140,7 @@ describe('MemberRepository Unit Tests', () => {
         orderBy: { createdAt: 'desc' },
       });
 
-      expect(prismaService.member.count).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.count).toHaveBeenCalledWith({
         where: {
           deletedAt: null,
           email: { contains: 'test', mode: 'insensitive' },
@@ -169,11 +160,11 @@ describe('MemberRepository Unit Tests', () => {
 
   describe('existsByEmail', () => {
     it('should return true when member exists', async () => {
-      prismaService.member.count.mockResolvedValue(1);
+      mockPrismaService.member.count.mockResolvedValue(1);
 
       const result = await repository.existsByEmail('test@example.com');
 
-      expect(prismaService.member.count).toHaveBeenCalledWith({
+      expect(mockPrismaService.member.count).toHaveBeenCalledWith({
         where: {
           email: 'test@example.com',
           deletedAt: null,
@@ -183,7 +174,7 @@ describe('MemberRepository Unit Tests', () => {
     });
 
     it('should return false when member does not exist', async () => {
-      prismaService.member.count.mockResolvedValue(0);
+      mockPrismaService.member.count.mockResolvedValue(0);
 
       const result = await repository.existsByEmail('test@example.com');
 

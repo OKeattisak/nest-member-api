@@ -28,7 +28,7 @@
   - Write integration tests for repository implementations
   - _Requirements: 8.4, 3.3, 3.6_
 
-- [ ] 5. Set up authentication infrastructure
+- [x] 5. Set up authentication infrastructure
   - Create JWT service with separate configurations for admin and member tokens
   - Implement password hashing and validation utilities
   - Create authentication guards for admin and member routes

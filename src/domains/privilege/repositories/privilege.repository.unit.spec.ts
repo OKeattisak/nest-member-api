@@ -3,22 +3,14 @@ import { PrivilegeRepository } from './privilege.repository';
 import { MemberPrivilegeRepository } from './member-privilege.repository';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { createMockPrismaService, MockPrismaService } from '../../common/test-utils/prisma-mock.factory';
 
 describe('PrivilegeRepository Unit Tests', () => {
   let repository: PrivilegeRepository;
-  let prismaService: jest.Mocked<PrismaService>;
+  let mockPrismaService: MockPrismaService;
 
   beforeEach(async () => {
-    const mockPrismaService = {
-      privilege: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        findMany: jest.fn(),
-        count: jest.fn(),
-      },
-    } as any;
+    mockPrismaService = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,7 +23,6 @@ describe('PrivilegeRepository Unit Tests', () => {
     }).compile();
 
     repository = module.get<PrivilegeRepository>(PrivilegeRepository);
-    prismaService = module.get(PrismaService);
   });
 
   describe('create', () => {
@@ -44,11 +35,11 @@ describe('PrivilegeRepository Unit Tests', () => {
       };
       const mockPrivilege = { id: 'privilege-id', ...createData };
       
-      prismaService.privilege.create.mockResolvedValue(mockPrivilege as any);
+      mockPrismaService.privilege.create.mockResolvedValue(mockPrivilege);
 
       const result = await repository.create(createData);
 
-      expect(prismaService.privilege.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.privilege.create).toHaveBeenCalledWith({
         data: {
           name: createData.name,
           description: createData.description,
@@ -65,11 +56,11 @@ describe('PrivilegeRepository Unit Tests', () => {
       const testId = 'privilege-id';
       const mockPrivilege = { id: testId, name: 'Test Privilege' };
       
-      prismaService.privilege.findUnique.mockResolvedValue(mockPrivilege as any);
+      mockPrismaService.privilege.findUnique.mockResolvedValue(mockPrivilege);
 
       const result = await repository.findById(testId);
 
-      expect(prismaService.privilege.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.privilege.findUnique).toHaveBeenCalledWith({
         where: { id: testId },
       });
       expect(result).toBe(mockPrivilege);
@@ -81,11 +72,11 @@ describe('PrivilegeRepository Unit Tests', () => {
       const testName = 'Test Privilege';
       const mockPrivilege = { id: 'privilege-id', name: testName };
       
-      prismaService.privilege.findUnique.mockResolvedValue(mockPrivilege as any);
+      mockPrismaService.privilege.findUnique.mockResolvedValue(mockPrivilege);
 
       const result = await repository.findByName(testName);
 
-      expect(prismaService.privilege.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.privilege.findUnique).toHaveBeenCalledWith({
         where: { name: testName },
       });
       expect(result).toBe(mockPrivilege);
@@ -98,11 +89,11 @@ describe('PrivilegeRepository Unit Tests', () => {
       const updateData = { name: 'Updated Privilege', pointCost: 200 };
       const mockPrivilege = { id: testId, ...updateData };
       
-      prismaService.privilege.update.mockResolvedValue(mockPrivilege as any);
+      mockPrismaService.privilege.update.mockResolvedValue(mockPrivilege);
 
       const result = await repository.update(testId, updateData);
 
-      expect(prismaService.privilege.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.privilege.update).toHaveBeenCalledWith({
         where: { id: testId },
         data: {
           ...updateData,
@@ -118,11 +109,11 @@ describe('PrivilegeRepository Unit Tests', () => {
     it('should call prisma.privilege.delete with correct parameters', async () => {
       const testId = 'privilege-id';
       
-      prismaService.privilege.delete.mockResolvedValue({} as any);
+      mockPrismaService.privilege.delete.mockResolvedValue({});
 
       await repository.delete(testId);
 
-      expect(prismaService.privilege.delete).toHaveBeenCalledWith({
+      expect(mockPrismaService.privilege.delete).toHaveBeenCalledWith({
         where: { id: testId },
       });
     });
@@ -135,11 +126,11 @@ describe('PrivilegeRepository Unit Tests', () => {
         { id: '2', name: 'Expensive', pointCost: 200, isActive: true },
       ];
       
-      prismaService.privilege.findMany.mockResolvedValue(mockPrivileges as any);
+      mockPrismaService.privilege.findMany.mockResolvedValue(mockPrivileges);
 
       const result = await repository.findActivePrivileges();
 
-      expect(prismaService.privilege.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.privilege.findMany).toHaveBeenCalledWith({
         where: { isActive: true },
         orderBy: { pointCost: 'asc' },
       });
@@ -149,18 +140,18 @@ describe('PrivilegeRepository Unit Tests', () => {
 
   describe('existsByName', () => {
     it('should return true when privilege exists', async () => {
-      prismaService.privilege.count.mockResolvedValue(1);
+      mockPrismaService.privilege.count.mockResolvedValue(1);
 
       const result = await repository.existsByName('Test Privilege');
 
-      expect(prismaService.privilege.count).toHaveBeenCalledWith({
+      expect(mockPrismaService.privilege.count).toHaveBeenCalledWith({
         where: { name: 'Test Privilege' },
       });
       expect(result).toBe(true);
     });
 
     it('should return false when privilege does not exist', async () => {
-      prismaService.privilege.count.mockResolvedValue(0);
+      mockPrismaService.privilege.count.mockResolvedValue(0);
 
       const result = await repository.existsByName('Non-existent Privilege');
 
@@ -171,17 +162,10 @@ describe('PrivilegeRepository Unit Tests', () => {
 
 describe('MemberPrivilegeRepository Unit Tests', () => {
   let repository: MemberPrivilegeRepository;
-  let prismaService: jest.Mocked<PrismaService>;
+  let mockPrismaService: MockPrismaService;
 
   beforeEach(async () => {
-    const mockPrismaService = {
-      memberPrivilege: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        findMany: jest.fn(),
-      },
-    } as any;
+    mockPrismaService = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -194,7 +178,6 @@ describe('MemberPrivilegeRepository Unit Tests', () => {
     }).compile();
 
     repository = module.get<MemberPrivilegeRepository>(MemberPrivilegeRepository);
-    prismaService = module.get(PrismaService);
   });
 
   describe('create', () => {
@@ -206,11 +189,11 @@ describe('MemberPrivilegeRepository Unit Tests', () => {
       };
       const mockMemberPrivilege = { id: 'mp-id', ...createData };
       
-      prismaService.memberPrivilege.create.mockResolvedValue(mockMemberPrivilege as any);
+      mockPrismaService.memberPrivilege.create.mockResolvedValue(mockMemberPrivilege);
 
       const result = await repository.create(createData);
 
-      expect(prismaService.memberPrivilege.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.memberPrivilege.create).toHaveBeenCalledWith({
         data: createData,
       });
       expect(result).toBe(mockMemberPrivilege);
@@ -228,11 +211,11 @@ describe('MemberPrivilegeRepository Unit Tests', () => {
         },
       ];
       
-      prismaService.memberPrivilege.findMany.mockResolvedValue(mockMemberPrivileges as any);
+      mockPrismaService.memberPrivilege.findMany.mockResolvedValue(mockMemberPrivileges);
 
       const result = await repository.findByMemberId(memberId);
 
-      expect(prismaService.memberPrivilege.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.memberPrivilege.findMany).toHaveBeenCalledWith({
         where: { memberId },
         include: { privilege: true },
         orderBy: { grantedAt: 'desc' },
@@ -253,11 +236,11 @@ describe('MemberPrivilegeRepository Unit Tests', () => {
         },
       ];
       
-      prismaService.memberPrivilege.findMany.mockResolvedValue(mockActivePrivileges as any);
+      mockPrismaService.memberPrivilege.findMany.mockResolvedValue(mockActivePrivileges);
 
       const result = await repository.findActiveMemberPrivileges(memberId);
 
-      expect(prismaService.memberPrivilege.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.memberPrivilege.findMany).toHaveBeenCalledWith({
         where: {
           memberId,
           isActive: true,
@@ -277,11 +260,11 @@ describe('MemberPrivilegeRepository Unit Tests', () => {
     it('should mark member privilege as inactive', async () => {
       const privilegeId = 'mp-id';
       
-      prismaService.memberPrivilege.update.mockResolvedValue({} as any);
+      mockPrismaService.memberPrivilege.update.mockResolvedValue({});
 
       await repository.expireMemberPrivilege(privilegeId);
 
-      expect(prismaService.memberPrivilege.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.memberPrivilege.update).toHaveBeenCalledWith({
         where: { id: privilegeId },
         data: { isActive: false },
       });
@@ -295,11 +278,11 @@ describe('MemberPrivilegeRepository Unit Tests', () => {
         { id: 'mp-1', expiresAt: new Date() },
       ];
       
-      prismaService.memberPrivilege.findMany.mockResolvedValue(mockExpiringPrivileges as any);
+      mockPrismaService.memberPrivilege.findMany.mockResolvedValue(mockExpiringPrivileges);
 
       const result = await repository.findExpiringPrivileges(days);
 
-      expect(prismaService.memberPrivilege.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.memberPrivilege.findMany).toHaveBeenCalledWith({
         where: {
           expiresAt: {
             lte: expect.any(Date),

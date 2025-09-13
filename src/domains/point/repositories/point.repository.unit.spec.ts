@@ -2,23 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PointRepository } from './point.repository';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { PointType, Prisma } from '@prisma/client';
+import { createMockPrismaService, MockPrismaService } from '../../common/test-utils/prisma-mock.factory';
 
 describe('PointRepository Unit Tests', () => {
   let repository: PointRepository;
-  let prismaService: jest.Mocked<PrismaService>;
+  let mockPrismaService: MockPrismaService;
 
   beforeEach(async () => {
-    const mockPrismaService = {
-      point: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        createMany: jest.fn(),
-        updateMany: jest.fn(),
-        aggregate: jest.fn(),
-        count: jest.fn(),
-      },
-    } as any;
+    mockPrismaService = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,7 +22,6 @@ describe('PointRepository Unit Tests', () => {
     }).compile();
 
     repository = module.get<PointRepository>(PointRepository);
-    prismaService = module.get(PrismaService);
   });
 
   describe('create', () => {
@@ -45,11 +35,11 @@ describe('PointRepository Unit Tests', () => {
       };
       const mockPoint = { id: 'point-id', ...createData };
       
-      prismaService.point.create.mockResolvedValue(mockPoint as any);
+      mockPrismaService.point.create.mockResolvedValue(mockPoint);
 
       const result = await repository.create(createData);
 
-      expect(prismaService.point.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.point.create).toHaveBeenCalledWith({
         data: {
           memberId: createData.memberId,
           amount: new Prisma.Decimal(createData.amount),
@@ -67,11 +57,11 @@ describe('PointRepository Unit Tests', () => {
       const memberId = 'member-id';
       const mockPoints = [{ id: 'point-1', memberId }];
       
-      prismaService.point.findMany.mockResolvedValue(mockPoints as any);
+      mockPrismaService.point.findMany.mockResolvedValue(mockPoints);
 
       const result = await repository.findByMemberId(memberId);
 
-      expect(prismaService.point.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.point.findMany).toHaveBeenCalledWith({
         where: { memberId },
         orderBy: { createdAt: 'desc' },
       });
@@ -84,11 +74,11 @@ describe('PointRepository Unit Tests', () => {
       const memberId = 'member-id';
       const mockAggregate = { _sum: { amount: new Prisma.Decimal(150) } };
       
-      prismaService.point.aggregate.mockResolvedValue(mockAggregate as any);
+      mockPrismaService.point.aggregate.mockResolvedValue(mockAggregate);
 
       const result = await repository.getAvailableBalance(memberId);
 
-      expect(prismaService.point.aggregate).toHaveBeenCalledWith({
+      expect(mockPrismaService.point.aggregate).toHaveBeenCalledWith({
         where: {
           memberId,
           isExpired: false,
@@ -106,7 +96,7 @@ describe('PointRepository Unit Tests', () => {
       const memberId = 'member-id';
       const mockAggregate = { _sum: { amount: null } };
       
-      prismaService.point.aggregate.mockResolvedValue(mockAggregate as any);
+      mockPrismaService.point.aggregate.mockResolvedValue(mockAggregate);
 
       const result = await repository.getAvailableBalance(memberId);
 
@@ -120,11 +110,11 @@ describe('PointRepository Unit Tests', () => {
         { id: 'point-1', amount: 100, expiresAt: new Date('2023-01-01') }
       ];
       
-      prismaService.point.findMany.mockResolvedValue(mockExpiredPoints as any);
+      mockPrismaService.point.findMany.mockResolvedValue(mockExpiredPoints);
 
       const result = await repository.findExpiredPoints();
 
-      expect(prismaService.point.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.point.findMany).toHaveBeenCalledWith({
         where: {
           expiresAt: { lte: expect.any(Date) },
           isExpired: false,
@@ -140,11 +130,11 @@ describe('PointRepository Unit Tests', () => {
     it('should mark points as expired', async () => {
       const pointIds = ['point-1', 'point-2'];
       
-      prismaService.point.updateMany.mockResolvedValue({ count: 2 } as any);
+      mockPrismaService.point.updateMany.mockResolvedValue({ count: 2 });
 
       await repository.expirePoints(pointIds);
 
-      expect(prismaService.point.updateMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.point.updateMany).toHaveBeenCalledWith({
         where: { id: { in: pointIds } },
         data: { isExpired: true },
       });
@@ -169,11 +159,11 @@ describe('PointRepository Unit Tests', () => {
         },
       ];
       
-      prismaService.point.findMany.mockResolvedValue(mockPoints as any);
+      mockPrismaService.point.findMany.mockResolvedValue(mockPoints);
 
       const result = await repository.getAvailablePoints(memberId);
 
-      expect(prismaService.point.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.point.findMany).toHaveBeenCalledWith({
         where: {
           memberId,
           isExpired: false,
@@ -278,12 +268,12 @@ describe('PointRepository Unit Tests', () => {
       const mockPoints = [{ id: 'point-1', memberId }];
       const mockCount = 1;
       
-      prismaService.point.findMany.mockResolvedValue(mockPoints as any);
-      prismaService.point.count.mockResolvedValue(mockCount);
+      mockPrismaService.point.findMany.mockResolvedValue(mockPoints);
+      mockPrismaService.point.count.mockResolvedValue(mockCount);
 
       const result = await repository.findPointHistory(memberId, pagination);
 
-      expect(prismaService.point.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.point.findMany).toHaveBeenCalledWith({
         where: { memberId },
         skip: 0,
         take: 10,

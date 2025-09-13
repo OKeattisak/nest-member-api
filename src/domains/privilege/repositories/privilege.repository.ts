@@ -32,15 +32,13 @@ export class PrivilegeRepository implements IPrivilegeRepository {
         description: data.description,
         pointCost: new Prisma.Decimal(data.pointCost),
         validityDays: data.validityDays,
+        isActive: data.isActive ?? true, // Use provided value or default to true
       },
     });
   }
 
   async update(id: string, data: UpdatePrivilegeData): Promise<Privilege> {
-    const updateData: any = {
-      ...data,
-      updatedAt: new Date(),
-    };
+    const updateData: any = { ...data };
 
     if (data.pointCost !== undefined) {
       updateData.pointCost = new Prisma.Decimal(data.pointCost);

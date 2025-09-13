@@ -19,12 +19,45 @@ export async function createTestingModule(providers: any[] = []): Promise<Testin
 }
 
 export async function cleanupDatabase(prisma: PrismaService): Promise<void> {
-  // Clean up in reverse order of dependencies
-  await prisma.memberPrivilege.deleteMany();
-  await prisma.point.deleteMany();
-  await prisma.privilege.deleteMany();
-  await prisma.member.deleteMany();
-  await prisma.admin.deleteMany();
+  await cleanupWithRetry(prisma, 3);
+}
+
+async function cleanupWithRetry(prisma: PrismaService, maxRetries: number): Promise<void> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Use transaction to ensure atomicity and proper constraint handling
+      await prisma.$transaction(async (tx) => {
+        // Clean up in strict dependency order to avoid foreign key violations
+        // 1. First delete junction/relationship tables
+        await tx.memberPrivilege.deleteMany();
+        
+        // 2. Then delete dependent entities
+        await tx.point.deleteMany();
+        
+        // 3. Then delete parent entities
+        await tx.privilege.deleteMany();
+        await tx.member.deleteMany();
+        
+        // 4. Finally delete independent entities
+        await tx.admin.deleteMany();
+      }, {
+        timeout: 10000, // 10 second timeout
+      });
+      
+      // If we reach here, cleanup was successful
+      return;
+    } catch (error) {
+      if (attempt === maxRetries) {
+        // If this was the last attempt, throw the error
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Database cleanup failed after ${maxRetries} attempts: ${errorMessage}`);
+      }
+      
+      // Wait before retrying (exponential backoff)
+      const delay = Math.pow(2, attempt - 1) * 100; // 100ms, 200ms, 400ms...
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
 }
 
 export function createTestMember(overrides: Partial<any> = {}) {
@@ -44,6 +77,7 @@ export function createTestPrivilege(overrides: Partial<any> = {}) {
     description: 'A test privilege',
     pointCost: 100,
     validityDays: 30,
+    isActive: true, // Explicitly set default value
     ...overrides,
   };
 }
