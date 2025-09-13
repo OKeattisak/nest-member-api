@@ -22,6 +22,7 @@ export interface PrivilegeFilters {
   isActive?: boolean;
   pointCostMin?: number;
   pointCostMax?: number;
+  search?: string;
 }
 
 export interface CreateMemberPrivilegeData {

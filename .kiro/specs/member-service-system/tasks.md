@@ -68,7 +68,7 @@
   - Write comprehensive tests for FIFO point operations and edge cases
   - _Requirements: 3.1, 3.2, 3.3, 3.6, 9.2, 9.5_
 
-- [ ] 10. Implement privilege management system
+- [x] 10. Implement privilege management system
   - Create privilege service for managing available privileges and their costs
   - Implement privilege exchange logic with point deduction using FIFO
   - Add member privilege tracking with expiration dates
@@ -76,7 +76,8 @@
   - Write tests for privilege exchange scenarios and validation
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 5.1, 5.2_
 
-- [ ] 11. Create admin API controllers and endpoints
+
+- [x] 11. Create admin API controllers and endpoints
   - Implement admin authentication controller with login functionality
   - Create admin member management controller with CRUD operations
   - Add admin point management controller for point addition and deduction
@@ -84,8 +85,9 @@
   - Add pagination, filtering, and sorting for admin list endpoints
   - Write integration tests for all admin API endpoints
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 3.1, 3.2, 5.1, 5.2, 5.3, 5.4_
+-
 
-- [ ] 12. Create member API controllers and endpoints
+- [x] 12. Create member API controllers and endpoints
   - Implement member authentication controller with registration and login
   - Create member profile controller for profile management
   - Add member point controller for balance inquiry and transaction history
