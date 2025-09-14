@@ -7,6 +7,7 @@ import { LoggingModule } from './infrastructure/logging/logging.module';
 import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { HealthModule } from './infrastructure/health/health.module';
 import { SecurityModule } from './infrastructure/security/security.module';
+import { ApplicationModule } from './application/application.module';
 import { PresentationModule } from './presentation/presentation.module';
 import { validateConfig } from './infrastructure/config/config.interface';
 import appConfig from './infrastructure/config/app.config';
@@ -39,6 +40,7 @@ import businessConfig from './infrastructure/config/business.config';
     AuthModule,
     JobsModule,
     HealthModule,
+    ApplicationModule,
     PresentationModule,
   ],
   controllers: [],

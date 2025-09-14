@@ -29,7 +29,7 @@ export class JwtService {
   constructor(
     private readonly nestJwtService: NestJwtService,
     private readonly configService: ConfigService<AppConfig>,
-  ) {}
+  ) { }
 
   async generateMemberToken(memberId: string): Promise<JwtTokens> {
     const payload: MemberJwtPayload = {

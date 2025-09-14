@@ -10,7 +10,8 @@ import {
   HttpCode, 
   HttpStatus, 
   UseGuards,
-  Logger 
+  Logger,
+  BadRequestException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { AdminJwtGuard } from '@/common/guards/admin-jwt.guard';
@@ -25,6 +26,10 @@ import {
 } from '@/domains/admin/dto/member-management.dto';
 import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-response.interface';
 
+// Import Application Layer Use Cases
+import { GetAllMembersUseCase } from '../../application/admin/use-cases/get-all-members.use-case';
+import { GetMemberDetailsUseCase } from '../../application/admin/use-cases/get-member-details.use-case';
+
 @ApiTags('Admin Members')
 @ApiBearerAuth('admin-auth')
 @Controller('admin/members')
@@ -32,7 +37,13 @@ import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-resp
 export class AdminMemberController {
   private readonly logger = new Logger(AdminMemberController.name);
 
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    // Use Application Layer Use Cases
+    private readonly getAllMembersUseCase: GetAllMembersUseCase,
+    private readonly getMemberDetailsUseCase: GetMemberDetailsUseCase,
+    // Keep MemberService for operations not yet implemented in use cases
+    private readonly memberService: MemberService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -103,29 +114,36 @@ export class AdminMemberController {
     @Query() filters: MemberFiltersDto,
     @Query() pagination: PaginationDto,
     @CurrentAdmin() admin: CurrentAdminData,
-  ): Promise<ApiSuccessResponse<MemberResponseDto[]>> {
+  ): Promise<ApiSuccessResponse<any[]>> {
     this.logger.log(`Admin ${admin.id} fetching members with filters:`, filters);
 
-    // This would need to be implemented in MemberService
-    // For now, we'll create a placeholder response
-    const members: MemberResponseDto[] = [];
-    const total = 0;
-    const page = pagination.page || 1;
-    const limit = pagination.limit || 10;
-    const totalPages = Math.ceil(total / limit);
+    // Use Application Layer Use Case
+    const result = await this.getAllMembersUseCase.execute({
+      page: pagination.page || 1,
+      limit: pagination.limit || 10,
+      search: filters.search,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    });
+
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to get members for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     const paginationMeta: PaginationMeta = {
-      page,
-      limit,
-      total,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1,
+      page: result.data.pagination.page,
+      limit: result.data.pagination.limit,
+      total: result.data.pagination.total,
+      totalPages: result.data.pagination.totalPages,
+      hasNext: result.data.pagination.page < result.data.pagination.totalPages,
+      hasPrev: result.data.pagination.page > 1,
     };
 
     return {
       success: true,
-      data: members,
+      data: result.data.members,
       message: 'Members retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -152,25 +170,23 @@ export class AdminMemberController {
   async getMemberById(
     @Param('id') id: string,
     @CurrentAdmin() admin: CurrentAdminData,
-  ): Promise<ApiSuccessResponse<MemberResponseDto>> {
+  ): Promise<ApiSuccessResponse<any>> {
     this.logger.log(`Admin ${admin.id} fetching member: ${id}`);
 
-    const member = await this.memberService.getMemberById(id);
+    // Use Application Layer Use Case
+    const result = await this.getMemberDetailsUseCase.execute({
+      memberId: id,
+    });
 
-    const responseData: MemberResponseDto = {
-      id: member.id,
-      email: member.email,
-      username: member.username,
-      firstName: member.firstName,
-      lastName: member.lastName,
-      isActive: member.isActive,
-      createdAt: member.createdAt,
-      updatedAt: member.updatedAt,
-    };
+    // Handle Application Result
+    if (!result.isSuccess) {
+      this.logger.warn(`Failed to get member details for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     return {
       success: true,
-      data: responseData,
+      data: result.data,
       message: 'Member retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),

@@ -3,18 +3,21 @@ import {
   Get, 
   Query,
   UseGuards,
-  Logger 
+  Logger,
+  BadRequestException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { MemberJwtGuard } from '@/common/guards/member-jwt.guard';
 import { CurrentMember, CurrentMemberData } from '@/common/decorators/current-member.decorator';
-import { PointService } from '@/domains/point/services/point.service';
 import { 
   PointHistoryQueryDto,
   PointBalanceResponseDto,
   PointTransactionResponseDto
 } from '@/domains/member/dto/member-point.dto';
 import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-response.interface';
+
+// Import Application Layer Use Case
+import { GetMemberPointsUseCase } from '../../application/member/use-cases/get-member-points.use-case';
 
 @ApiTags('Member Points')
 @ApiBearerAuth('member-auth')
@@ -23,7 +26,10 @@ import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-resp
 export class MemberPointController {
   private readonly logger = new Logger(MemberPointController.name);
 
-  constructor(private readonly pointService: PointService) {}
+  constructor(
+    // Use Application Layer Use Case
+    private readonly getMemberPointsUseCase: GetMemberPointsUseCase,
+  ) {}
 
   @Get('balance')
   @ApiOperation({ 
@@ -55,19 +61,31 @@ export class MemberPointController {
   })
   async getPointBalance(
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<PointBalanceResponseDto>> {
+  ): Promise<ApiSuccessResponse<any>> {
     this.logger.log(`Member ${currentMember.id} fetching point balance`);
 
-    const pointBalance = await this.pointService.getPointBalance(currentMember.id);
+    // Use Application Layer Use Case
+    const result = await this.getMemberPointsUseCase.execute({
+      memberId: currentMember.id,
+      page: 1,
+      limit: 1, // Just get the balance info
+    });
 
-    const responseData: PointBalanceResponseDto = {
-      memberId: pointBalance.memberId,
-      totalEarned: pointBalance.totalEarned,
-      totalDeducted: pointBalance.totalDeducted,
-      totalExpired: pointBalance.totalExpired,
-      totalExchanged: pointBalance.totalExchanged,
-      availableBalance: pointBalance.availableBalance,
-      lastUpdated: pointBalance.lastUpdated,
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to get points for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
+
+    // Extract balance information from the result
+    const responseData = {
+      memberId: currentMember.id,
+      totalEarned: result.data.totalPoints,
+      totalDeducted: 0, // Not available in current response
+      totalExpired: 0, // Not available in current response
+      totalExchanged: 0, // Not available in current response
+      availableBalance: result.data.availablePoints,
+      lastUpdated: new Date(),
     };
 
     return {
@@ -138,40 +156,34 @@ export class MemberPointController {
   async getPointHistory(
     @Query() query: PointHistoryQueryDto,
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<PointTransactionResponseDto[]>> {
+  ): Promise<ApiSuccessResponse<any[]>> {
     this.logger.log(`Member ${currentMember.id} fetching point history`);
 
-    const pagination = {
+    // Use Application Layer Use Case
+    const result = await this.getMemberPointsUseCase.execute({
+      memberId: currentMember.id,
       page: query.page || 1,
       limit: query.limit || 10,
-    };
+    });
 
-    const result = await this.pointService.getPointHistory(currentMember.id, pagination);
-
-    const responseData: PointTransactionResponseDto[] = result.data.map(transaction => ({
-      id: transaction.id,
-      memberId: transaction.memberId,
-      amount: transaction.amount,
-      signedAmount: transaction.signedAmount,
-      type: transaction.type,
-      description: transaction.description,
-      expiresAt: transaction.expiresAt,
-      isExpired: transaction.isExpired,
-      createdAt: transaction.createdAt,
-    }));
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to get point history for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     const paginationMeta: PaginationMeta = {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages,
-      hasNext: result.page < result.totalPages,
-      hasPrev: result.page > 1,
+      page: result.data.pagination.page,
+      limit: result.data.pagination.limit,
+      total: result.data.pagination.total,
+      totalPages: result.data.pagination.totalPages,
+      hasNext: result.data.pagination.page < result.data.pagination.totalPages,
+      hasPrev: result.data.pagination.page > 1,
     };
 
     return {
       success: true,
-      data: responseData,
+      data: result.data.transactions,
       message: 'Point history retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),

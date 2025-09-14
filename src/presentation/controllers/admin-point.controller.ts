@@ -8,7 +8,8 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Logger
+  Logger,
+  BadRequestException
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -32,6 +33,9 @@ import { PaginationDto } from '@/domains/admin/dto/member-management.dto';
 import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-response.interface';
 import { ApiDocumentationHelper } from '@/common/swagger/api-documentation.helper';
 
+// Import Application Layer Use Case
+import { AdjustMemberPointsUseCase } from '../../application/admin/use-cases/adjust-member-points.use-case';
+
 @ApiTags('Admin Points')
 @Controller('admin/points')
 @UseGuards(AdminJwtGuard)
@@ -39,7 +43,12 @@ import { ApiDocumentationHelper } from '@/common/swagger/api-documentation.helpe
 export class AdminPointController {
   private readonly logger = new Logger(AdminPointController.name);
 
-  constructor(private readonly pointService: PointService) { }
+  constructor(
+    // Use Application Layer Use Case
+    private readonly adjustMemberPointsUseCase: AdjustMemberPointsUseCase,
+    // Keep PointService for operations not yet implemented in use cases
+    private readonly pointService: PointService,
+  ) { }
 
   @Post('add')
   @HttpCode(HttpStatus.CREATED)
@@ -105,12 +114,19 @@ export class AdminPointController {
   ): Promise<ApiSuccessResponse<{ message: string }>> {
     this.logger.log(`Admin ${admin.id} adding ${addPointsDto.amount} points to member ${addPointsDto.memberId}`);
 
-    await this.pointService.addPoints({
+    // Use Application Layer Use Case
+    const result = await this.adjustMemberPointsUseCase.execute({
       memberId: addPointsDto.memberId,
       amount: addPointsDto.amount,
-      description: addPointsDto.description,
-      expirationDays: addPointsDto.expirationDays,
+      reason: addPointsDto.description,
+      adminId: admin.id,
     });
+
+    // Handle Application Result
+    if (!result.isSuccess) {
+      this.logger.warn(`Failed to add points for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     this.logger.log(`Successfully added ${addPointsDto.amount} points to member ${addPointsDto.memberId}`);
 
@@ -189,11 +205,19 @@ export class AdminPointController {
   ): Promise<ApiSuccessResponse<{ message: string }>> {
     this.logger.log(`Admin ${admin.id} deducting ${deductPointsDto.amount} points from member ${deductPointsDto.memberId}`);
 
-    await this.pointService.deductPoints({
+    // Use Application Layer Use Case
+    const result = await this.adjustMemberPointsUseCase.execute({
       memberId: deductPointsDto.memberId,
-      amount: deductPointsDto.amount,
-      description: deductPointsDto.description,
+      amount: -deductPointsDto.amount, // Negative amount for deduction
+      reason: deductPointsDto.description,
+      adminId: admin.id,
     });
+
+    // Handle Application Result
+    if (!result.isSuccess) {
+      this.logger.warn(`Failed to deduct points for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     this.logger.log(`Successfully deducted ${deductPointsDto.amount} points from member ${deductPointsDto.memberId}`);
 

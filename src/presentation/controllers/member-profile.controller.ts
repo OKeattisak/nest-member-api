@@ -7,7 +7,8 @@ import {
   HttpCode, 
   HttpStatus, 
   UseGuards,
-  Logger 
+  Logger,
+  BadRequestException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { MemberJwtGuard } from '@/common/guards/member-jwt.guard';
@@ -20,6 +21,10 @@ import {
 import { MemberProfileResponseDto } from '@/domains/member/dto/member-auth.dto';
 import { ApiSuccessResponse } from '@/common/interfaces/api-response.interface';
 
+// Import Application Layer Use Cases
+import { GetMemberProfileUseCase } from '../../application/member/use-cases/get-member-profile.use-case';
+import { UpdateMemberProfileUseCase } from '../../application/member/use-cases/update-member-profile.use-case';
+
 @ApiTags('Member Profile')
 @ApiBearerAuth('member-auth')
 @Controller('member/profile')
@@ -27,7 +32,12 @@ import { ApiSuccessResponse } from '@/common/interfaces/api-response.interface';
 export class MemberProfileController {
   private readonly logger = new Logger(MemberProfileController.name);
 
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    // Use Application Layer Use Cases instead of Domain Services
+    private readonly getMemberProfileUseCase: GetMemberProfileUseCase,
+    private readonly updateMemberProfileUseCase: UpdateMemberProfileUseCase,
+    private readonly memberService: MemberService, // Keep for change password (not implemented in use cases yet)
+  ) {}
 
   @Get()
   @ApiOperation({ 
@@ -60,25 +70,23 @@ export class MemberProfileController {
   })
   async getProfile(
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<MemberProfileResponseDto>> {
+  ): Promise<ApiSuccessResponse<any>> {
     this.logger.log(`Member ${currentMember.id} fetching profile`);
 
-    const member = await this.memberService.getMemberById(currentMember.id);
+    // Use Application Layer Use Case
+    const result = await this.getMemberProfileUseCase.execute({
+      memberId: currentMember.id,
+    });
 
-    const responseData: MemberProfileResponseDto = {
-      id: member.id,
-      email: member.email,
-      username: member.username,
-      firstName: member.firstName,
-      lastName: member.lastName,
-      isActive: member.isActive,
-      createdAt: member.createdAt,
-      updatedAt: member.updatedAt,
-    };
+    // Handle Application Result
+    if (!result.isSuccess) {
+      this.logger.warn(`Failed to get profile for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     return {
       success: true,
-      data: responseData,
+      data: result.data,
       message: 'Profile retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -113,31 +121,28 @@ export class MemberProfileController {
   async updateProfile(
     @Body() updateProfileDto: UpdateMemberProfileDto,
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<MemberProfileResponseDto>> {
+  ): Promise<ApiSuccessResponse<any>> {
     this.logger.log(`Member ${currentMember.id} updating profile`);
 
-    const member = await this.memberService.updateMemberProfile(currentMember.id, {
-      firstName: updateProfileDto.firstName,
-      lastName: updateProfileDto.lastName,
-      username: updateProfileDto.username,
+    // Use Application Layer Use Case
+    const result = await this.updateMemberProfileUseCase.execute({
+      memberId: currentMember.id,
+      name: updateProfileDto.firstName && updateProfileDto.lastName ? 
+        `${updateProfileDto.firstName} ${updateProfileDto.lastName}` : 
+        undefined,
     });
 
-    const responseData: MemberProfileResponseDto = {
-      id: member.id,
-      email: member.email,
-      username: member.username,
-      firstName: member.firstName,
-      lastName: member.lastName,
-      isActive: member.isActive,
-      createdAt: member.createdAt,
-      updatedAt: member.updatedAt,
-    };
+    // Handle Application Result
+    if (!result.isSuccess) {
+      this.logger.warn(`Failed to update profile for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     this.logger.log(`Successfully updated profile for member: ${currentMember.id}`);
 
     return {
       success: true,
-      data: responseData,
+      data: result.data,
       message: 'Profile updated successfully',
       meta: {
         timestamp: new Date().toISOString(),

@@ -6,7 +6,8 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Logger
+  Logger,
+  BadRequestException
 } from '@nestjs/common';
 import { 
   ApiTags, 
@@ -17,7 +18,6 @@ import {
 } from '@nestjs/swagger';
 import { MemberJwtGuard } from '@/common/guards/member-jwt.guard';
 import { CurrentMember, CurrentMemberData } from '@/common/decorators/current-member.decorator';
-import { PrivilegeService } from '@/domains/privilege/services/privilege.service';
 import {
   ExchangePrivilegeDto,
   AvailablePrivilegeResponseDto,
@@ -27,6 +27,11 @@ import {
 import { ApiSuccessResponse } from '@/common/interfaces/api-response.interface';
 import { ApiDocumentationHelper } from '@/common/swagger/api-documentation.helper';
 
+// Import Application Layer Use Cases
+import { ExchangePrivilegeUseCase } from '../../application/member/use-cases/exchange-privilege.use-case';
+import { GetAvailablePrivilegesUseCase } from '../../application/member/use-cases/get-available-privileges.use-case';
+import { GetMemberPrivilegesUseCase } from '../../application/member/use-cases/get-member-privileges.use-case';
+
 @ApiTags('Member Privileges')
 @Controller('member/privileges')
 @UseGuards(MemberJwtGuard)
@@ -34,7 +39,12 @@ import { ApiDocumentationHelper } from '@/common/swagger/api-documentation.helpe
 export class MemberPrivilegeController {
   private readonly logger = new Logger(MemberPrivilegeController.name);
 
-  constructor(private readonly privilegeService: PrivilegeService) { }
+  constructor(
+    // Use Application Layer Use Cases
+    private readonly exchangePrivilegeUseCase: ExchangePrivilegeUseCase,
+    private readonly getAvailablePrivilegesUseCase: GetAvailablePrivilegesUseCase,
+    private readonly getMemberPrivilegesUseCase: GetMemberPrivilegesUseCase,
+  ) { }
 
   @Get('available')
   @ApiOperation({
@@ -76,23 +86,23 @@ export class MemberPrivilegeController {
   @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
   async getAvailablePrivileges(
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<AvailablePrivilegeResponseDto[]>> {
+  ): Promise<ApiSuccessResponse<any[]>> {
     this.logger.log(`Member ${currentMember.id} fetching available privileges`);
 
-    const privileges = await this.privilegeService.getAvailablePrivileges();
+    // Use Application Layer Use Case
+    const result = await this.getAvailablePrivilegesUseCase.execute({
+      memberId: currentMember.id,
+    });
 
-    const responseData: AvailablePrivilegeResponseDto[] = privileges.map(privilege => ({
-      id: privilege.id,
-      name: privilege.name,
-      description: privilege.description,
-      pointCost: privilege.pointCost,
-      validityDays: privilege.validityDays,
-      isActive: privilege.isActive,
-    }));
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to get available privileges for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     return {
       success: true,
-      data: responseData,
+      data: result.data,
       message: 'Available privileges retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -162,27 +172,26 @@ export class MemberPrivilegeController {
   async exchangePrivilege(
     @Body() exchangeDto: ExchangePrivilegeDto,
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<PrivilegeExchangeResponseDto>> {
+  ): Promise<ApiSuccessResponse<any>> {
     this.logger.log(`Member ${currentMember.id} exchanging privilege: ${exchangeDto.privilegeId}`);
 
-    const exchangeResult = await this.privilegeService.exchangePrivilege({
+    // Use Application Layer Use Case
+    const result = await this.exchangePrivilegeUseCase.execute({
       memberId: currentMember.id,
       privilegeId: exchangeDto.privilegeId,
     });
 
-    const responseData: PrivilegeExchangeResponseDto = {
-      memberPrivilegeId: exchangeResult.memberPrivilegeId,
-      privilegeName: exchangeResult.privilegeName,
-      pointsDeducted: exchangeResult.pointsDeducted,
-      expiresAt: exchangeResult.expiresAt,
-      exchangedAt: exchangeResult.exchangedAt,
-    };
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to exchange privilege for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
-    this.logger.log(`Successfully exchanged privilege '${exchangeResult.privilegeName}' for member: ${currentMember.id}`);
+    this.logger.log(`Successfully exchanged privilege '${result.data.privilege.name}' for member: ${currentMember.id}`);
 
     return {
       success: true,
-      data: responseData,
+      data: result.data,
       message: 'Privilege exchanged successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -221,27 +230,23 @@ export class MemberPrivilegeController {
   @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
   async getMemberPrivileges(
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<MemberPrivilegeResponseDto[]>> {
+  ): Promise<ApiSuccessResponse<any[]>> {
     this.logger.log(`Member ${currentMember.id} fetching their privileges`);
 
-    const memberPrivileges = await this.privilegeService.getMemberPrivileges(currentMember.id);
+    // Use Application Layer Use Case
+    const result = await this.getMemberPrivilegesUseCase.execute({
+      memberId: currentMember.id,
+    });
 
-    const responseData: MemberPrivilegeResponseDto[] = memberPrivileges.map(privilege => ({
-      id: privilege.id,
-      privilegeId: privilege.privilegeId,
-      privilegeName: privilege.privilegeName,
-      privilegeDescription: privilege.privilegeDescription,
-      pointCost: privilege.pointCost,
-      grantedAt: privilege.grantedAt,
-      expiresAt: privilege.expiresAt,
-      isActive: privilege.isActive,
-      isExpired: privilege.isExpired,
-      daysRemaining: privilege.daysRemaining,
-    }));
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to get member privileges for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     return {
       success: true,
-      data: responseData,
+      data: result.data,
       message: 'Member privileges retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -294,27 +299,24 @@ export class MemberPrivilegeController {
   @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
   async getActiveMemberPrivileges(
     @CurrentMember() currentMember: CurrentMemberData,
-  ): Promise<ApiSuccessResponse<MemberPrivilegeResponseDto[]>> {
+  ): Promise<ApiSuccessResponse<any[]>> {
     this.logger.log(`Member ${currentMember.id} fetching active privileges`);
 
-    const activePrivileges = await this.privilegeService.getActiveMemberPrivileges(currentMember.id);
+    // Use Application Layer Use Case
+    const result = await this.getMemberPrivilegesUseCase.execute({
+      memberId: currentMember.id,
+      status: 'ACTIVE',
+    });
 
-    const responseData: MemberPrivilegeResponseDto[] = activePrivileges.map(privilege => ({
-      id: privilege.id,
-      privilegeId: privilege.privilegeId,
-      privilegeName: privilege.privilegeName,
-      privilegeDescription: privilege.privilegeDescription,
-      pointCost: privilege.pointCost,
-      grantedAt: privilege.grantedAt,
-      expiresAt: privilege.expiresAt,
-      isActive: privilege.isActive,
-      isExpired: privilege.isExpired,
-      daysRemaining: privilege.daysRemaining,
-    }));
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to get active member privileges for member ${currentMember.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     return {
       success: true,
-      data: responseData,
+      data: result.data,
       message: 'Active member privileges retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),

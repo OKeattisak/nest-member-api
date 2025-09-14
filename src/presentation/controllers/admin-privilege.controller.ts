@@ -10,7 +10,8 @@ import {
   HttpCode, 
   HttpStatus, 
   UseGuards,
-  Logger 
+  Logger,
+  BadRequestException
 } from '@nestjs/common';
 import { 
   ApiTags, 
@@ -34,6 +35,12 @@ import { PaginationDto } from '@/domains/admin/dto/member-management.dto';
 import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-response.interface';
 import { ApiDocumentationHelper } from '@/common/swagger/api-documentation.helper';
 
+// Import Application Layer Use Cases
+import { CreatePrivilegeUseCase } from '../../application/admin/use-cases/create-privilege.use-case';
+import { UpdatePrivilegeUseCase } from '../../application/admin/use-cases/update-privilege.use-case';
+import { DeletePrivilegeUseCase } from '../../application/admin/use-cases/delete-privilege.use-case';
+import { GetAllPrivilegesUseCase } from '../../application/admin/use-cases/get-all-privileges.use-case';
+
 @ApiTags('Admin Privileges')
 @Controller('admin/privileges')
 @UseGuards(AdminJwtGuard)
@@ -41,7 +48,15 @@ import { ApiDocumentationHelper } from '@/common/swagger/api-documentation.helpe
 export class AdminPrivilegeController {
   private readonly logger = new Logger(AdminPrivilegeController.name);
 
-  constructor(private readonly privilegeService: PrivilegeService) {}
+  constructor(
+    // Use Application Layer Use Cases
+    private readonly createPrivilegeUseCase: CreatePrivilegeUseCase,
+    private readonly updatePrivilegeUseCase: UpdatePrivilegeUseCase,
+    private readonly deletePrivilegeUseCase: DeletePrivilegeUseCase,
+    private readonly getAllPrivilegesUseCase: GetAllPrivilegesUseCase,
+    // Keep PrivilegeService for operations not yet implemented in use cases
+    private readonly privilegeService: PrivilegeService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -99,32 +114,29 @@ export class AdminPrivilegeController {
   async createPrivilege(
     @Body() createPrivilegeDto: CreatePrivilegeDto,
     @CurrentAdmin() admin: CurrentAdminData,
-  ): Promise<ApiSuccessResponse<PrivilegeResponseDto>> {
+  ): Promise<ApiSuccessResponse<any>> {
     this.logger.log(`Admin ${admin.id} creating new privilege: ${createPrivilegeDto.name}`);
 
-    const privilege = await this.privilegeService.createPrivilege({
+    // Use Application Layer Use Case
+    const result = await this.createPrivilegeUseCase.execute({
       name: createPrivilegeDto.name,
       description: createPrivilegeDto.description,
-      pointCost: createPrivilegeDto.pointCost,
-      validityDays: createPrivilegeDto.validityDays,
+      pointsCost: createPrivilegeDto.pointCost,
+      category: 'General', // Default category
+      adminId: admin.id,
     });
 
-    const responseData: PrivilegeResponseDto = {
-      id: privilege.id,
-      name: privilege.name,
-      description: privilege.description,
-      pointCost: privilege.pointCost,
-      isActive: privilege.isActive,
-      validityDays: privilege.validityDays,
-      createdAt: privilege.createdAt,
-      updatedAt: privilege.updatedAt,
-    };
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to create privilege for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
-    this.logger.log(`Successfully created privilege: ${privilege.id}`);
+    this.logger.log(`Successfully created privilege: ${result.data.privilegeId}`);
 
     return {
       success: true,
-      data: responseData,
+      data: { id: result.data.privilegeId },
       message: 'Privilege created successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -157,44 +169,37 @@ export class AdminPrivilegeController {
     @Query() filters: PrivilegeFiltersDto,
     @Query() pagination: PaginationDto,
     @CurrentAdmin() admin: CurrentAdminData,
-  ): Promise<ApiSuccessResponse<PrivilegeResponseDto[]>> {
+  ): Promise<ApiSuccessResponse<any[]>> {
     this.logger.log(`Admin ${admin.id} fetching privileges with filters:`, filters);
 
-    const result = await this.privilegeService.getPrivileges(
-      {
-        name: filters.name,
-        isActive: filters.isActive,
-        search: filters.search,
-      },
-      {
-        page: pagination.page || 1,
-        limit: pagination.limit || 10,
-      }
-    );
+    // Use Application Layer Use Case
+    const result = await this.getAllPrivilegesUseCase.execute({
+      page: pagination.page || 1,
+      limit: pagination.limit || 10,
+      category: undefined,
+      isActive: filters.isActive,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    });
 
-    const responseData: PrivilegeResponseDto[] = result.data.map(privilege => ({
-      id: privilege.id,
-      name: privilege.name,
-      description: privilege.description,
-      pointCost: privilege.pointCost,
-      isActive: privilege.isActive,
-      validityDays: privilege.validityDays,
-      createdAt: privilege.createdAt,
-      updatedAt: privilege.updatedAt,
-    }));
+    // Handle Application Result
+    if (!result.isSuccess || !result.data) {
+      this.logger.warn(`Failed to get privileges for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     const paginationMeta: PaginationMeta = {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages,
-      hasNext: result.page < result.totalPages,
-      hasPrev: result.page > 1,
+      page: result.data.pagination.page,
+      limit: result.data.pagination.limit,
+      total: result.data.pagination.total,
+      totalPages: result.data.pagination.totalPages,
+      hasNext: result.data.pagination.page < result.data.pagination.totalPages,
+      hasPrev: result.data.pagination.page > 1,
     };
 
     return {
       success: true,
-      data: responseData,
+      data: result.data.privileges,
       message: 'Privileges retrieved successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -295,33 +300,31 @@ export class AdminPrivilegeController {
     @Param('id') id: string,
     @Body() updatePrivilegeDto: UpdatePrivilegeDto,
     @CurrentAdmin() admin: CurrentAdminData,
-  ): Promise<ApiSuccessResponse<PrivilegeResponseDto>> {
+  ): Promise<ApiSuccessResponse<any>> {
     this.logger.log(`Admin ${admin.id} updating privilege: ${id}`);
 
-    const privilege = await this.privilegeService.updatePrivilege(id, {
+    // Use Application Layer Use Case
+    const result = await this.updatePrivilegeUseCase.execute({
+      privilegeId: id,
       name: updatePrivilegeDto.name,
       description: updatePrivilegeDto.description,
-      pointCost: updatePrivilegeDto.pointCost,
-      validityDays: updatePrivilegeDto.validityDays,
+      pointsCost: updatePrivilegeDto.pointCost,
+      category: 'General', // Default category
       isActive: updatePrivilegeDto.isActive,
+      adminId: admin.id,
     });
 
-    const responseData: PrivilegeResponseDto = {
-      id: privilege.id,
-      name: privilege.name,
-      description: privilege.description,
-      pointCost: privilege.pointCost,
-      isActive: privilege.isActive,
-      validityDays: privilege.validityDays,
-      createdAt: privilege.createdAt,
-      updatedAt: privilege.updatedAt,
-    };
+    // Handle Application Result
+    if (!result.isSuccess) {
+      this.logger.warn(`Failed to update privilege for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     this.logger.log(`Successfully updated privilege: ${id}`);
 
     return {
       success: true,
-      data: responseData,
+      data: { message: 'Privilege updated successfully' },
       message: 'Privilege updated successfully',
       meta: {
         timestamp: new Date().toISOString(),
@@ -451,7 +454,17 @@ export class AdminPrivilegeController {
   ): Promise<void> {
     this.logger.log(`Admin ${admin.id} deleting privilege: ${id}`);
 
-    await this.privilegeService.deletePrivilege(id);
+    // Use Application Layer Use Case
+    const result = await this.deletePrivilegeUseCase.execute({
+      privilegeId: id,
+      adminId: admin.id,
+    });
+
+    // Handle Application Result
+    if (!result.isSuccess) {
+      this.logger.warn(`Failed to delete privilege for admin ${admin.id}: ${result.error}`);
+      throw new BadRequestException(result.error);
+    }
 
     this.logger.log(`Successfully deleted privilege: ${id}`);
   }
