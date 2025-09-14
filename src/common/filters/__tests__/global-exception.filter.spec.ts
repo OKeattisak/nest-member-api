@@ -3,16 +3,32 @@ import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { GlobalExceptionFilter } from '../global-exception.filter';
 import { DomainException, ValidationException, NotFoundExceptionDomain } from '../../exceptions/domain.exception';
 import { RequestContext } from '../../utils/trace.util';
+import { LoggerService } from '../../../infrastructure/logging/logger.service';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { InsufficientPointsException } from '../../../domains/point/exceptions';
+import { MemberNotFoundException } from '../../../domains/member/exceptions';
 
 describe('GlobalExceptionFilter', () => {
   let filter: GlobalExceptionFilter;
   let mockArgumentsHost: ArgumentsHost;
   let mockRequest: any;
   let mockResponse: any;
+  let mockLogger: jest.Mocked<LoggerService>;
 
   beforeEach(async () => {
+    mockLogger = {
+      error: jest.fn(),
+      warn: jest.fn(),
+      log: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GlobalExceptionFilter],
+      providers: [
+        {
+          provide: GlobalExceptionFilter,
+          useFactory: () => new GlobalExceptionFilter(mockLogger),
+        },
+      ],
     }).compile();
 
     filter = module.get<GlobalExceptionFilter>(GlobalExceptionFilter);
@@ -180,4 +196,143 @@ describe('GlobalExceptionFilter', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(expectedStatus);
     });
   });
-});
+
+  describe('Domain-specific exceptions', () => {
+    it('should handle InsufficientPointsException correctly', () => {
+      const exception = new InsufficientPointsException(100, 50);
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: {
+          code: 'INSUFFICIENT_POINTS',
+          message: 'Insufficient points. Required: 100, Available: 50',
+          details: { required: 100, available: 50, deficit: 50 },
+        },
+        meta: {
+          timestamp: expect.any(String),
+          traceId: 'test-trace-id',
+        },
+      });
+    });
+
+    it('should handle MemberNotFoundException correctly', () => {
+      const exception = new MemberNotFoundException('member-123');
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: {
+          code: 'MEMBER_NOT_FOUND',
+          message: "Member with identifier 'member-123' not found",
+        },
+        meta: {
+          timestamp: expect.any(String),
+          traceId: 'test-trace-id',
+        },
+      });
+    });
+  });
+
+  describe('Prisma exceptions', () => {
+    it('should handle PrismaClientKnownRequestError P2002 (unique constraint)', () => {
+      const exception = new PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: '4.0.0',
+        meta: { target: ['email'] },
+      });
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: {
+          code: 'UNIQUE_CONSTRAINT_VIOLATION',
+          message: 'A record with this information already exists',
+          details: { fields: ['email'] },
+        },
+        meta: {
+          timestamp: expect.any(String),
+          traceId: 'test-trace-id',
+        },
+      });
+    });
+
+    it('should handle PrismaClientKnownRequestError P2025 (record not found)', () => {
+      const exception = new PrismaClientKnownRequestError('Record not found', {
+        code: 'P2025',
+        clientVersion: '4.0.0',
+      });
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: {
+          code: 'RECORD_NOT_FOUND',
+          message: 'The requested record was not found',
+        },
+        meta: {
+          timestamp: expect.any(String),
+          traceId: 'test-trace-id',
+        },
+      });
+    });
+  });
+
+  describe('Error logging', () => {
+    it('should log domain exceptions with appropriate level', () => {
+      const exception = new ValidationException('Validation failed');
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockLogger.warn).toHaveBeenCalled();
+    });
+
+    it('should log unexpected errors with error level', () => {
+      const exception = new Error('Unexpected error');
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockLogger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('Message sanitization', () => {
+    it('should sanitize sensitive information in error messages', () => {
+      const exception = new Error('Password validation failed for password: secret123');
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            message: 'An unexpected error occurred',
+          }),
+        })
+      );
+    });
+  });
+
+  describe('Error details sanitization', () => {
+    it('should sanitize sensitive fields in error details', () => {
+      const exception = new ValidationException('Validation failed', {
+        field: 'email',
+        password: 'secret123',
+        token: 'jwt-token',
+      });
+      
+      filter.catch(exception, mockArgumentsHost);
+
+      const call = mockResponse.json.mock.calls[0][0];
+      expect(call.error.details.field).toBe('email');
+      expect(call.error.details.password).toBe('[REDACTED]');
+      expect(call.error.details.token).toBe('[REDACTED]');
+    });
+  });});
