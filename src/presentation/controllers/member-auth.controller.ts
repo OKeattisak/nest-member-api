@@ -1,4 +1,5 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { MemberService } from '../../domains/member/services/member.service';
 import { JwtService } from '../../infrastructure/auth/jwt.service';
 import { 
@@ -9,6 +10,7 @@ import {
 } from '../../domains/member/dto/member-auth.dto';
 import { ApiSuccessResponse } from '../../common/interfaces/api-response.interface';
 
+@ApiTags('Member Auth')
 @Controller('member/auth')
 export class MemberAuthController {
   private readonly logger = new Logger(MemberAuthController.name);
@@ -20,6 +22,50 @@ export class MemberAuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ 
+    summary: 'Member registration',
+    description: 'Register a new member account'
+  })
+  @ApiBody({
+    type: MemberRegisterDto,
+    description: 'Member registration data',
+    examples: {
+      example1: {
+        summary: 'Member registration example',
+        value: {
+          email: 'member@example.com',
+          username: 'member123',
+          password: 'securePassword123',
+          firstName: 'John',
+          lastName: 'Doe'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Registration successful',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'clm123456789' },
+            email: { type: 'string', example: 'member@example.com' },
+            username: { type: 'string', example: 'member123' },
+            firstName: { type: 'string', example: 'John' },
+            lastName: { type: 'string', example: 'Doe' },
+            isActive: { type: 'boolean', example: true },
+            createdAt: { type: 'string', example: '2023-01-01T00:00:00.000Z' },
+            updatedAt: { type: 'string', example: '2023-01-01T00:00:00.000Z' }
+          }
+        },
+        message: { type: 'string', example: 'Registration successful' }
+      }
+    }
+  })
   async register(@Body() registerDto: MemberRegisterDto): Promise<ApiSuccessResponse<MemberProfileResponseDto>> {
     this.logger.log(`Member registration attempt for: ${registerDto.email}`);
 
@@ -57,6 +103,46 @@ export class MemberAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Member login',
+    description: 'Authenticate a member and return JWT token'
+  })
+  @ApiBody({
+    type: MemberLoginDto,
+    description: 'Member login credentials',
+    examples: {
+      example1: {
+        summary: 'Member login example',
+        value: {
+          emailOrUsername: 'member@example.com',
+          password: 'securePassword123'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'clm123456789' },
+            email: { type: 'string', example: 'member@example.com' },
+            username: { type: 'string', example: 'member123' },
+            firstName: { type: 'string', example: 'John' },
+            lastName: { type: 'string', example: 'Doe' },
+            accessToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+            expiresIn: { type: 'number', example: 86400 }
+          }
+        },
+        message: { type: 'string', example: 'Login successful' }
+      }
+    }
+  })
   async login(@Body() loginDto: MemberLoginDto): Promise<ApiSuccessResponse<MemberLoginResponseDto>> {
     this.logger.log(`Member login attempt for: ${loginDto.emailOrUsername}`);
 

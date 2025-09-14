@@ -1,9 +1,11 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AdminService } from '../../domains/admin/services/admin.service';
 import { JwtService } from '../../infrastructure/auth/jwt.service';
 import { AdminLoginDto, AdminLoginResponseDto } from '../../domains/admin/dto/admin-auth.dto';
 import { ApiSuccessResponse } from '../../common/interfaces/api-response.interface';
 
+@ApiTags('Admin Auth')
 @Controller('admin/auth')
 export class AdminAuthController {
   private readonly logger = new Logger(AdminAuthController.name);
@@ -15,6 +17,76 @@ export class AdminAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Admin login',
+    description: 'Authenticate an administrator and return JWT token'
+  })
+  @ApiBody({
+    type: AdminLoginDto,
+    description: 'Admin login credentials',
+    examples: {
+      example1: {
+        summary: 'Admin login example',
+        value: {
+          emailOrUsername: 'admin@example.com',
+          password: 'securePassword123'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'clm123456789' },
+            email: { type: 'string', example: 'admin@example.com' },
+            username: { type: 'string', example: 'admin' },
+            role: { type: 'string', example: 'ADMIN' },
+            accessToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+            expiresIn: { type: 'number', example: 28800 }
+          }
+        },
+        message: { type: 'string', example: 'Login successful' },
+        meta: {
+          type: 'object',
+          properties: {
+            timestamp: { type: 'string', example: '2023-01-01T00:00:00.000Z' },
+            traceId: { type: 'string', example: 'generated-trace-id' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Authentication failed',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: false },
+        error: {
+          type: 'object',
+          properties: {
+            code: { type: 'string', example: 'AUTHENTICATION_FAILED' },
+            message: { type: 'string', example: 'Invalid credentials' }
+          }
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            timestamp: { type: 'string', example: '2023-01-01T00:00:00.000Z' },
+            traceId: { type: 'string', example: 'generated-trace-id' }
+          }
+        }
+      }
+    }
+  })
   async login(@Body() loginDto: AdminLoginDto): Promise<ApiSuccessResponse<AdminLoginResponseDto>> {
     this.logger.log(`Admin login attempt for: ${loginDto.emailOrUsername}`);
 

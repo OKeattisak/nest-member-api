@@ -9,6 +9,7 @@ import {
   UseGuards,
   Logger 
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { MemberJwtGuard } from '../../common/guards/member-jwt.guard';
 import { CurrentMember, CurrentMemberData } from '../../common/decorators/current-member.decorator';
 import { MemberService } from '../../domains/member/services/member.service';
@@ -19,6 +20,8 @@ import {
 import { MemberProfileResponseDto } from '../../domains/member/dto/member-auth.dto';
 import { ApiSuccessResponse } from '../../common/interfaces/api-response.interface';
 
+@ApiTags('Member Profile')
+@ApiBearerAuth('member-auth')
 @Controller('member/profile')
 @UseGuards(MemberJwtGuard)
 export class MemberProfileController {
@@ -27,6 +30,34 @@ export class MemberProfileController {
   constructor(private readonly memberService: MemberService) {}
 
   @Get()
+  @ApiOperation({ 
+    summary: 'Get member profile',
+    description: 'Retrieve the current member profile information'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'clm123456789' },
+            email: { type: 'string', example: 'member@example.com' },
+            username: { type: 'string', example: 'member123' },
+            firstName: { type: 'string', example: 'John' },
+            lastName: { type: 'string', example: 'Doe' },
+            isActive: { type: 'boolean', example: true },
+            createdAt: { type: 'string', example: '2023-01-01T00:00:00.000Z' },
+            updatedAt: { type: 'string', example: '2023-01-01T00:00:00.000Z' }
+          }
+        },
+        message: { type: 'string', example: 'Profile retrieved successfully' }
+      }
+    }
+  })
   async getProfile(
     @CurrentMember() currentMember: CurrentMemberData,
   ): Promise<ApiSuccessResponse<MemberProfileResponseDto>> {
@@ -57,6 +88,28 @@ export class MemberProfileController {
   }
 
   @Put()
+  @ApiOperation({ 
+    summary: 'Update member profile',
+    description: 'Update the current member profile information'
+  })
+  @ApiBody({
+    type: UpdateMemberProfileDto,
+    description: 'Profile update data',
+    examples: {
+      example1: {
+        summary: 'Profile update example',
+        value: {
+          firstName: 'John',
+          lastName: 'Doe',
+          username: 'johndoe123'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully'
+  })
   async updateProfile(
     @Body() updateProfileDto: UpdateMemberProfileDto,
     @CurrentMember() currentMember: CurrentMemberData,

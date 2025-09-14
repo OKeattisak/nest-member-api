@@ -12,6 +12,7 @@ import {
   UseGuards,
   Logger 
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
 import { CurrentAdmin, CurrentAdminData } from '../../common/decorators/current-admin.decorator';
 import { MemberService } from '../../domains/member/services/member.service';
@@ -24,6 +25,8 @@ import {
 } from '../../domains/admin/dto/member-management.dto';
 import { ApiSuccessResponse, PaginationMeta } from '../../common/interfaces/api-response.interface';
 
+@ApiTags('Admin Members')
+@ApiBearerAuth('admin-auth')
 @Controller('admin/members')
 @UseGuards(AdminJwtGuard)
 export class AdminMemberController {
@@ -33,6 +36,18 @@ export class AdminMemberController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ 
+    summary: 'Create new member',
+    description: 'Create a new member account (Admin only)'
+  })
+  @ApiBody({
+    type: CreateMemberDto,
+    description: 'Member creation data'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Member created successfully'
+  })
   async createMember(
     @Body() createMemberDto: CreateMemberDto,
     @CurrentAdmin() admin: CurrentAdminData,
@@ -72,6 +87,18 @@ export class AdminMemberController {
   }
 
   @Get()
+  @ApiOperation({ 
+    summary: 'Get all members',
+    description: 'Retrieve paginated list of members with optional filters (Admin only)'
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search term' })
+  @ApiQuery({ name: 'isActive', required: false, type: Boolean, description: 'Filter by active status' })
+  @ApiResponse({
+    status: 200,
+    description: 'Members retrieved successfully'
+  })
   async getMembers(
     @Query() filters: MemberFiltersDto,
     @Query() pagination: PaginationDto,
@@ -109,6 +136,19 @@ export class AdminMemberController {
   }
 
   @Get(':id')
+  @ApiOperation({ 
+    summary: 'Get member by ID',
+    description: 'Retrieve a specific member by their ID (Admin only)'
+  })
+  @ApiParam({ name: 'id', description: 'Member ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Member retrieved successfully'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Member not found'
+  })
   async getMemberById(
     @Param('id') id: string,
     @CurrentAdmin() admin: CurrentAdminData,
