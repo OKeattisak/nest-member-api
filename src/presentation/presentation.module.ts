@@ -8,13 +8,13 @@ import { MemberAuthController } from './controllers/member-auth.controller';
 import { MemberPointController } from './controllers/member-point.controller';
 import { MemberPrivilegeController } from './controllers/member-privilege.controller';
 import { MemberProfileController } from './controllers/member-profile.controller';
-import { AdminModule } from '../domains/admin/admin.module';
-import { MemberModule } from '../domains/member/member.module';
-import { PointModule } from '../domains/point/point.module';
-import { PrivilegeModule } from '../domains/privilege/privilege.module';
-import { AuthModule } from '../infrastructure/auth/auth.module';
-import { JobsModule } from '../infrastructure/jobs/jobs.module';
-import { AuditModule } from '../domains/audit/audit.module';
+import { AdminModule } from '@/domains/admin/admin.module';
+import { MemberModule } from '@/domains/member/member.module';
+import { PointModule } from '@/domains/point/point.module';
+import { PrivilegeModule } from '@/domains/privilege/privilege.module';
+import { AuthModule } from '@/infrastructure/auth/auth.module';
+import { JobsModule } from '@/infrastructure/jobs/jobs.module';
+import { AuditModule } from '@/domains/audit/audit.module';
 
 @Module({
   imports: [

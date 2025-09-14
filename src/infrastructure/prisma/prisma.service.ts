@@ -1,8 +1,8 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
-import { LoggerService } from '../logging/logger.service';
-import { performanceConfig } from '../logging/winston.config';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
+import { performanceConfig } from '@/infrastructure/logging/winston.config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {

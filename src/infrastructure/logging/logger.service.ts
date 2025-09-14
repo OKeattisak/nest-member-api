@@ -2,7 +2,7 @@ import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Inject } from '@nestjs/common';
-import { RequestContext } from '../../common/utils/trace.util';
+import { RequestContext } from '@/common/utils/trace.util';
 
 export interface LogContext {
   traceId?: string;

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PointRepository } from './point.repository';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { PointType, Prisma } from '@prisma/client';
-import { createMockPrismaService, MockPrismaService } from '../../common/test-utils/prisma-mock.factory';
+import { createMockPrismaService, MockPrismaService } from '@/domains/common/test-utils/prisma-mock.factory';
 
 describe('PointRepository Unit Tests', () => {
   let repository: PointRepository;

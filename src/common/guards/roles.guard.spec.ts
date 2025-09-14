@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RolesGuard } from './roles.guard';
-import { AdminRole } from '../../domains/admin/entities/admin.entity';
+import { AdminRole } from '@/domains/admin/entities/admin.entity';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 describe('RolesGuard', () => {

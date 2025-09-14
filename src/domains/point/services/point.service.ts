@@ -2,9 +2,9 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Point as PrismaPoint, PointType, TransactionType, ActorType } from '@prisma/client';
 import { IPointRepository } from '../repositories/point.repository.interface';
 import { Point } from '../entities/point.entity';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
-import { AuditService } from '../../audit/services/audit.service';
-import { RequestContext } from '../../../common/utils/trace.util';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
+import { AuditService } from '@/domains/audit/services/audit.service';
+import { RequestContext } from '@/common/utils/trace.util';
 
 export interface AddPointsData {
   memberId: string;

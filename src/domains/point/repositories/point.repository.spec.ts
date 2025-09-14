@@ -1,9 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
 import { PointType } from '@prisma/client';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { PointRepository } from './point.repository';
-import { MemberRepository } from '../../member/repositories/member.repository';
-import { createTestingModule, cleanupDatabase, createTestMember } from '../../common/test-utils/test-database.setup';
+import { MemberRepository } from '@/domains/member/repositories/member.repository';
+import { createTestingModule, cleanupDatabase, createTestMember } from '@/domains/common/test-utils/test-database.setup';
 
 describe('PointRepository', () => {
   let module: TestingModule;

@@ -1,18 +1,18 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Member } from '../entities/member.entity';
 import { IMemberRepository } from '../repositories/member.repository.interface';
-import { PasswordService } from '../../../infrastructure/auth/password.service';
-import { Email, Password } from '../../common/value-objects';
+import { PasswordService } from '@/infrastructure/auth/password.service';
+import { Email, Password } from '@/domains/common/value-objects';
 import {
   ConflictException,
   NotFoundExceptionDomain,
   ValidationException,
   BusinessRuleException,
   UnauthorizedException,
-} from '../../../common/exceptions/domain.exception';
-import { AuditService } from '../../audit/services/audit.service';
+} from '@/common/exceptions/domain.exception';
+import { AuditService } from '@/domains/audit/services/audit.service';
 import { AuditAction, ActorType } from '@prisma/client';
-import { RequestContext } from '../../../common/utils/trace.util';
+import { RequestContext } from '@/common/utils/trace.util';
 
 export interface RegisterMemberData {
   email: string;

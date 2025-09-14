@@ -1,14 +1,14 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Admin } from '../entities/admin.entity';
 import { IAdminRepository } from '../repositories/admin.repository.interface';
-import { PasswordService } from '../../../infrastructure/auth/password.service';
-import { Email } from '../../common/value-objects';
+import { PasswordService } from '@/infrastructure/auth/password.service';
+import { Email } from '@/domains/common/value-objects';
 import {
   ConflictException,
   NotFoundExceptionDomain,
   ValidationException,
   UnauthorizedException,
-} from '../../../common/exceptions/domain.exception';
+} from '@/common/exceptions/domain.exception';
 
 export interface AuthenticateAdminData {
   emailOrUsername: string;

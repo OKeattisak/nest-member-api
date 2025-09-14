@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { MemberPointController } from '../member-point.controller';
-import { PointService } from '../../../domains/point/services/point.service';
-import { MemberJwtGuard } from '../../../common/guards/member-jwt.guard';
+import { PointService } from '@/domains/point/services/point.service';
+import { MemberJwtGuard } from '@/common/guards/member-jwt.guard';
 import { PointType } from '@prisma/client';
 
 describe('MemberPointController (Integration)', () => {

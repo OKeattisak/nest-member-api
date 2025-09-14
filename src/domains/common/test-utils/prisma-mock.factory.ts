@@ -1,4 +1,4 @@
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 
 /**
  * Type-safe mock factory for Prisma client methods

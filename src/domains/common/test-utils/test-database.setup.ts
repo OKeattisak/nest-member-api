@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from '../../../infrastructure/prisma/prisma.module';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaModule } from '@/infrastructure/prisma/prisma.module';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 
 export async function createTestingModule(providers: any[] = []): Promise<TestingModule> {
   const module: TestingModule = await Test.createTestingModule({

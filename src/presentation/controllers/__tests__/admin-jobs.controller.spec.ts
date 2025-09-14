@@ -1,6 +1,5 @@
 import { AdminJobsController } from '../admin-jobs.controller';
-import { JobsService, JobExecutionResult, JobMonitoringData } from '../../../infrastructure/jobs/jobs.service';
-import { ExpirationProcessingResult } from '../../../domains/point/services/point.service';
+import { JobsService, JobExecutionResult, JobMonitoringData } from '@/infrastructure/jobs/jobs.service';
 
 describe('AdminJobsController', () => {
   let controller: AdminJobsController;

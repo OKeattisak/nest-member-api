@@ -5,8 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtService } from '../../infrastructure/auth/jwt.service';
-import { AdminRole } from '../../domains/admin/entities/admin.entity';
+import { JwtService } from '@/infrastructure/auth/jwt.service';
+import { AdminRole } from '@/domains/admin/entities/admin.entity';
 
 @Injectable()
 export class AdminJwtGuard implements CanActivate {

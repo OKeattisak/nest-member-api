@@ -1,0 +1,525 @@
+{
+  "info": {
+    "name": "Admin Points API",
+    "description": "Collection for testing Admin Points API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{admin_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "member_id",
+      "value": "clm123456789",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.accessToken) {",
+                  "        pm.collectionVariables.set('admin_token', response.data.accessToken);",
+                  "        console.log('Admin token saved to collection variable');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"admin@example.com\",\n  \"password\": \"AdminPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "auth", "login"]
+            },
+            "description": "Login as admin to get JWT token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Point Management",
+      "item": [
+        {
+          "name": "Add Points - Bonus with Expiration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{member_id}}\",\n  \"amount\": 500,\n  \"description\": \"Monthly activity bonus\",\n  \"expirationDays\": 365\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/points/add",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "add"]
+            },
+            "description": "Add points to member account with expiration date"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"memberId\": \"clm123456789\",\n  \"amount\": 500,\n  \"description\": \"Monthly activity bonus\",\n  \"expirationDays\": 365\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/points/add",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "points", "add"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"message\": \"Successfully added 500 points\"\n  },\n  \"message\": \"Points added successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T10:30:00.000Z\",\n    \"traceId\": \"trace-abc123\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Points - Permanent Points",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{member_id}}\",\n  \"amount\": 1000,\n  \"description\": \"Welcome bonus for new member\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/points/add",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "add"]
+            },
+            "description": "Add permanent points (no expiration) to member account"
+          },
+          "response": []
+        },
+        {
+          "name": "Deduct Points - Penalty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{member_id}}\",\n  \"amount\": 200,\n  \"description\": \"Penalty for policy violation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/points/deduct",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "deduct"]
+            },
+            "description": "Deduct points from member account using FIFO logic"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"memberId\": \"clm123456789\",\n  \"amount\": 200,\n  \"description\": \"Penalty for policy violation\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/points/deduct",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "points", "deduct"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"message\": \"Successfully deducted 200 points\"\n  },\n  \"message\": \"Points deducted successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T10:35:00.000Z\",\n    \"traceId\": \"trace-def456\"\n  }\n}"
+            },
+            {
+              "name": "Insufficient Points Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"memberId\": \"clm123456789\",\n  \"amount\": 2000,\n  \"description\": \"Large deduction\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/points/deduct",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "points", "deduct"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"INSUFFICIENT_POINTS\",\n    \"message\": \"Insufficient points\",\n    \"details\": {\n      \"requested\": 2000,\n      \"available\": 1500\n    }\n  },\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T10:35:00.000Z\",\n    \"traceId\": \"trace-def456\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Point Information",
+      "item": [
+        {
+          "name": "Get Point Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/points/balance/{{member_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "balance", "{{member_id}}"]
+            },
+            "description": "Get comprehensive point balance for a member"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/points/balance/clm123456789",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "points", "balance", "clm123456789"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"memberId\": \"clm123456789\",\n    \"totalEarned\": 2000,\n    \"totalDeducted\": 500,\n    \"totalExpired\": 100,\n    \"totalExchanged\": 300,\n    \"availableBalance\": 1100,\n    \"lastUpdated\": \"2023-12-01T10:40:00.000Z\"\n  },\n  \"message\": \"Point balance retrieved successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T10:40:00.000Z\",\n    \"traceId\": \"trace-ghi789\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Point History - First Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/points/history/{{member_id}}?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "history", "{{member_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get paginated point transaction history for a member"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/points/history/clm123456789?page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "points", "history", "clm123456789"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"clp123456789\",\n      \"memberId\": \"clm123456789\",\n      \"amount\": 500,\n      \"signedAmount\": 500,\n      \"type\": \"EARNED\",\n      \"description\": \"Monthly activity bonus\",\n      \"expiresAt\": \"2024-12-01T00:00:00.000Z\",\n      \"isExpired\": false,\n      \"createdAt\": \"2023-12-01T10:30:00.000Z\"\n    },\n    {\n      \"id\": \"clp987654321\",\n      \"memberId\": \"clm123456789\",\n      \"amount\": 200,\n      \"signedAmount\": -200,\n      \"type\": \"DEDUCTED\",\n      \"description\": \"Penalty for policy violation\",\n      \"expiresAt\": null,\n      \"isExpired\": false,\n      \"createdAt\": \"2023-11-30T15:20:00.000Z\"\n    }\n  ],\n  \"message\": \"Point history retrieved successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T10:45:00.000Z\",\n    \"traceId\": \"trace-jkl012\",\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 10,\n      \"total\": 25,\n      \"totalPages\": 3,\n      \"hasNext\": true,\n      \"hasPrev\": false\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Point History - Custom Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/points/history/{{member_id}}?page=2&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "history", "{{member_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get specific page of point history with custom limit"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Expiring Points - Default (30 days)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/points/expiring",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "expiring"]
+            },
+            "description": "Get points expiring in the next 30 days (default)"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/points/expiring",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "points", "expiring"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"clp123456789\",\n      \"memberId\": \"clm123456789\",\n      \"amount\": 500,\n      \"signedAmount\": 500,\n      \"type\": \"EARNED\",\n      \"description\": \"Welcome bonus\",\n      \"expiresAt\": \"2023-12-15T00:00:00.000Z\",\n      \"isExpired\": false,\n      \"createdAt\": \"2022-12-15T00:00:00.000Z\"\n    },\n    {\n      \"id\": \"clp987654321\",\n      \"memberId\": \"clm987654321\",\n      \"amount\": 200,\n      \"signedAmount\": 200,\n      \"type\": \"EARNED\",\n      \"description\": \"Activity bonus\",\n      \"expiresAt\": \"2023-12-20T00:00:00.000Z\",\n      \"isExpired\": false,\n      \"createdAt\": \"2022-12-20T00:00:00.000Z\"\n    }\n  ],\n  \"message\": \"Expiring points retrieved successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T10:50:00.000Z\",\n    \"traceId\": \"trace-mno345\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Expiring Points - Custom Days (7 days)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/points/expiring?days=7",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "expiring"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "7"
+                }
+              ]
+            },
+            "description": "Get points expiring in the next 7 days"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Add Points - Invalid Member ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"invalid-member-id\",\n  \"amount\": 500,\n  \"description\": \"Test points\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/points/add",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "add"]
+            },
+            "description": "Test error handling for invalid member ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Points - Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{member_id}}\",\n  \"amount\": -100,\n  \"description\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/points/add",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "add"]
+            },
+            "description": "Test validation error with negative amount and empty description"
+          },
+          "response": []
+        },
+        {
+          "name": "Deduct Points - Insufficient Balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{member_id}}\",\n  \"amount\": 99999,\n  \"description\": \"Large deduction to test insufficient points\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/points/deduct",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "deduct"]
+            },
+            "description": "Test insufficient points error"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Balance - Member Not Found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/points/balance/invalid-member-id",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "points", "balance", "invalid-member-id"]
+            },
+            "description": "Test member not found error"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

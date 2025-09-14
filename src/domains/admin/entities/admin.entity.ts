@@ -1,4 +1,4 @@
-import { Email } from '../../common/value-objects';
+import { Email } from '@/domains/common/value-objects';
 
 export enum AdminRole {
   SUPER_ADMIN = 'SUPER_ADMIN',

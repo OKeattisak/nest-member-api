@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { AuditAction, ActorType, AuditLog as PrismaAuditLog } from '@prisma/client';
 import { 
   IAuditLogRepository, 
   CreateAuditLogData, 
   AuditLogFilters 
-} from '../../../domains/audit/repositories/audit-log.repository.interface';
-import { AuditLog } from '../../../domains/audit/entities/audit-log.entity';
-import { PaginationOptions, PaginatedResult } from '../../../domains/member/repositories/member.repository.interface';
+} from '@/domains/audit/repositories/audit-log.repository.interface';
+import { AuditLog } from '@/domains/audit/entities/audit-log.entity';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 @Injectable()
 export class AuditLogRepository implements IAuditLogRepository {

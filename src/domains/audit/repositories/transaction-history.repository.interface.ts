@@ -1,6 +1,6 @@
 import { TransactionType } from '@prisma/client';
 import { TransactionHistory } from '../entities/transaction-history.entity';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 export interface CreateTransactionHistoryData {
   memberId: string;

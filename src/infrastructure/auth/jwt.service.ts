@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
-import { AppConfig } from '../config/config.interface';
-import { AdminRole } from '../../domains/admin/entities/admin.entity';
+import { AppConfig } from '@/infrastructure/config/config.interface';
+import { AdminRole } from '@/domains/admin/entities/admin.entity';
 
 export interface MemberJwtPayload {
   sub: string; // member ID

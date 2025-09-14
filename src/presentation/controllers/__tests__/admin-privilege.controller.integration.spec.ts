@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AdminPrivilegeController } from '../admin-privilege.controller';
-import { PrivilegeService } from '../../../domains/privilege/services/privilege.service';
-import { AdminJwtGuard } from '../../../common/guards/admin-jwt.guard';
-import { Privilege } from '../../../domains/privilege/entities/privilege.entity';
+import { PrivilegeService } from '@/domains/privilege/services/privilege.service';
+import { AdminJwtGuard } from '@/common/guards/admin-jwt.guard';
+import { Privilege } from '@/domains/privilege/entities/privilege.entity';
 
 describe('AdminPrivilegeController (Integration)', () => {
   let app: INestApplication;

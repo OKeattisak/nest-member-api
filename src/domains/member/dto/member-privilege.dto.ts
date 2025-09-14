@@ -1,6 +1,12 @@
 import { IsString, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class ExchangePrivilegeDto {
+  @ApiProperty({
+    description: 'Unique identifier of the privilege to exchange points for',
+    example: 'clpr123456789',
+    minLength: 1
+  })
   @IsString({ message: 'Privilege ID must be a string' })
   @IsNotEmpty({ message: 'Privilege ID is required' })
   privilegeId!: string;

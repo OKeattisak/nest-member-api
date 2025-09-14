@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AdminAuthController } from '../admin-auth.controller';
-import { AdminService } from '../../../domains/admin/services/admin.service';
-import { JwtService } from '../../../infrastructure/auth/jwt.service';
-import { Admin, AdminRole } from '../../../domains/admin/entities/admin.entity';
+import { AdminService } from '@/domains/admin/services/admin.service';
+import { JwtService } from '@/infrastructure/auth/jwt.service';
+import { Admin, AdminRole } from '@/domains/admin/entities/admin.entity';
 
 describe('AdminAuthController (Integration)', () => {
   let app: INestApplication;

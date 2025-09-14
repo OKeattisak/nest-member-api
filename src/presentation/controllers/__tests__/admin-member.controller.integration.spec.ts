@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AdminMemberController } from '../admin-member.controller';
-import { MemberService } from '../../../domains/member/services/member.service';
-import { AdminJwtGuard } from '../../../common/guards/admin-jwt.guard';
-import { Member } from '../../../domains/member/entities/member.entity';
+import { MemberService } from '@/domains/member/services/member.service';
+import { AdminJwtGuard } from '@/common/guards/admin-jwt.guard';
+import { Member } from '@/domains/member/entities/member.entity';
 
 describe('AdminMemberController (Integration)', () => {
   let app: INestApplication;

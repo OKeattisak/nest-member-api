@@ -1,6 +1,6 @@
 import { IsString, IsEmail, IsNotEmpty, IsOptional, IsBoolean, MinLength, MaxLength, IsInt, Min, Max, Matches } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { IsEmailUnique, IsUsernameUnique, IsStrongPassword } from '../../../common/decorators/validation.decorators';
+import { IsEmailUnique, IsUsernameUnique, IsStrongPassword } from '@/common/decorators/validation.decorators';
 
 export class CreateMemberDto {
   @IsEmail({}, { message: 'Please provide a valid email address' })

@@ -1,0 +1,371 @@
+{
+  "info": {
+    "name": "Admin Jobs API",
+    "description": "Collection for testing Admin Jobs API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{admin_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.accessToken) {",
+                  "        pm.collectionVariables.set('admin_token', response.data.accessToken);",
+                  "        console.log('Admin token saved to collection variable');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"admin@example.com\",\n  \"password\": \"AdminPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Point Expiration Jobs",
+      "item": [
+        {
+          "name": "Trigger Point Expiration Job",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/trigger",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "trigger"]
+            },
+            "description": "Manually trigger the point expiration job"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/jobs/point-expiration/trigger",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jobs", "point-expiration", "trigger"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"executionId\": \"exec-123456789\",\n    \"status\": \"completed\",\n    \"startTime\": \"2023-12-01T12:00:00.000Z\",\n    \"endTime\": \"2023-12-01T12:00:05.000Z\",\n    \"duration\": 5000,\n    \"processedCount\": 150,\n    \"errorCount\": 0,\n    \"result\": {\n      \"expiredPointsCount\": 150,\n      \"totalPointsExpired\": 7500,\n      \"affectedMembersCount\": 45\n    }\n  },\n  \"message\": \"Point expiration job completed successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T12:00:05.000Z\",\n    \"traceId\": \"job-exec-123456789\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Trigger Point Expiration Job with Retry - Default",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/trigger-with-retry",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "trigger-with-retry"]
+            },
+            "description": "Trigger point expiration job with default retry (3 attempts)"
+          }
+        },
+        {
+          "name": "Trigger Point Expiration Job with Retry - Custom",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/trigger-with-retry?maxRetries=5",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "trigger-with-retry"],
+              "query": [
+                {
+                  "key": "maxRetries",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Trigger point expiration job with custom retry attempts"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Job Status & Monitoring",
+      "item": [
+        {
+          "name": "Get Point Expiration Job Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/status",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "status"]
+            },
+            "description": "Get current status of point expiration job"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/jobs/point-expiration/status",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jobs", "point-expiration", "status"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"isProcessing\": false,\n    \"lastRun\": \"2023-12-01T12:00:00.000Z\"\n  },\n  \"message\": \"Point expiration job status retrieved successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T12:10:00.000Z\",\n    \"traceId\": \"status-1701432600000\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Point Expiration Job Monitoring",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/monitoring",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "monitoring"]
+            },
+            "description": "Get comprehensive monitoring data for point expiration job"
+          }
+        },
+        {
+          "name": "Get Recent Job Executions - Default",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/executions",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "executions"]
+            },
+            "description": "Get recent job executions with default limit (10)"
+          }
+        },
+        {
+          "name": "Get Recent Job Executions - Custom Limit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/executions?limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "executions"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get recent job executions with custom limit"
+          }
+        },
+        {
+          "name": "Get All Jobs Monitoring",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/monitoring",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "monitoring"]
+            },
+            "description": "Get monitoring data for all background jobs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Point Expiration Checks",
+      "item": [
+        {
+          "name": "Check Expiring Points - Default (7 days)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/check-expiring",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "check-expiring"]
+            },
+            "description": "Check for points expiring in the next 7 days (default)"
+          }
+        },
+        {
+          "name": "Check Expiring Points - Custom Days",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/check-expiring?days=14",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "check-expiring"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "14"
+                }
+              ]
+            },
+            "description": "Check for points expiring in the next 14 days"
+          }
+        },
+        {
+          "name": "Check Expiring Points - 30 Days",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/jobs/point-expiration/check-expiring?days=30",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "jobs", "point-expiration", "check-expiring"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Check for points expiring in the next 30 days"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Job Workflow Examples",
+      "item": [
+        {
+          "name": "Complete Job Workflow",
+          "item": [
+            {
+              "name": "1. Check Job Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/jobs/point-expiration/status",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jobs", "point-expiration", "status"]
+                }
+              }
+            },
+            {
+              "name": "2. Trigger Job",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/jobs/point-expiration/trigger",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jobs", "point-expiration", "trigger"]
+                }
+              }
+            },
+            {
+              "name": "3. Check Status Again",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/jobs/point-expiration/status",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jobs", "point-expiration", "status"]
+                }
+              }
+            },
+            {
+              "name": "4. Get Execution History",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/jobs/point-expiration/executions?limit=5",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jobs", "point-expiration", "executions"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

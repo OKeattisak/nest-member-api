@@ -1,4 +1,4 @@
-import { DomainException } from '../../../common/exceptions/domain.exception';
+import { DomainException } from '@/common/exceptions/domain.exception';
 
 export class PrivilegeNotFoundException extends DomainException {
   readonly code = 'PRIVILEGE_NOT_FOUND';

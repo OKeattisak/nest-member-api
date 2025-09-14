@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsBoolean, Min, Max, Length, IsNotEmpty } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { IsValidPointAmount } from '../../../common/decorators/validation.decorators';
+import { IsValidPointAmount } from '@/common/decorators/validation.decorators';
 
 export class CreatePrivilegeDto {
   @IsString({ message: 'Privilege name must be a string' })

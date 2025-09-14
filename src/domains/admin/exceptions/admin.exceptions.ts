@@ -1,4 +1,4 @@
-import { DomainException } from '../../../common/exceptions/domain.exception';
+import { DomainException } from '@/common/exceptions/domain.exception';
 
 export class AdminNotFoundException extends DomainException {
   readonly code = 'ADMIN_NOT_FOUND';

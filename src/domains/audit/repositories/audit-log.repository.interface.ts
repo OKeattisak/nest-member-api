@@ -1,6 +1,6 @@
 import { AuditAction, ActorType } from '@prisma/client';
 import { AuditLog } from '../entities/audit-log.entity';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 export interface CreateAuditLogData {
   entityType: string;

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Point, PointType, Prisma } from '@prisma/client';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import {
   IPointRepository,
   CreatePointData,
   PointFilters,
   AvailablePointsResult,
 } from './point.repository.interface';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 @Injectable()
 export class PointRepository implements IPointRepository {

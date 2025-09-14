@@ -12,22 +12,32 @@ import {
   UseGuards,
   Logger 
 } from '@nestjs/common';
-import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
-import { CurrentAdmin, CurrentAdminData } from '../../common/decorators/current-admin.decorator';
-import { PrivilegeService } from '../../domains/privilege/services/privilege.service';
+import { 
+  ApiTags, 
+  ApiOperation, 
+  ApiResponse, 
+  ApiBody, 
+  ApiParam, 
+  ApiQuery,
+  ApiBearerAuth 
+} from '@nestjs/swagger';
+import { AdminJwtGuard } from '@/common/guards/admin-jwt.guard';
+import { CurrentAdmin, CurrentAdminData } from '@/common/decorators/current-admin.decorator';
+import { PrivilegeService } from '@/domains/privilege/services/privilege.service';
 import { 
   CreatePrivilegeDto, 
   UpdatePrivilegeDto, 
   PrivilegeFiltersDto, 
   PrivilegeResponseDto 
-} from '../../domains/admin/dto/privilege-management.dto';
-import { PaginationDto } from '../../domains/admin/dto/member-management.dto';
-import { ApiSuccessResponse, PaginationMeta } from '../../common/interfaces/api-response.interface';
-import { ApiTags } from '@nestjs/swagger';
+} from '@/domains/admin/dto/privilege-management.dto';
+import { PaginationDto } from '@/domains/admin/dto/member-management.dto';
+import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-response.interface';
+import { ApiDocumentationHelper } from '@/common/swagger/api-documentation.helper';
 
 @ApiTags('Admin Privileges')
 @Controller('admin/privileges')
 @UseGuards(AdminJwtGuard)
+@ApiBearerAuth()
 export class AdminPrivilegeController {
   private readonly logger = new Logger(AdminPrivilegeController.name);
 
@@ -35,6 +45,57 @@ export class AdminPrivilegeController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create new privilege',
+    description: 'Create a new privilege that members can exchange points for. Privileges can have optional expiration periods.'
+  })
+  @ApiBody({
+    type: CreatePrivilegeDto,
+    description: 'Privilege creation details',
+    examples: {
+      'premium-access': {
+        summary: 'Premium access privilege',
+        description: 'Create a premium access privilege with 30-day validity',
+        value: {
+          name: 'Premium Access',
+          description: 'Access to premium features and exclusive content',
+          pointCost: 500,
+          validityDays: 30
+        }
+      },
+      'permanent-privilege': {
+        summary: 'Permanent privilege',
+        description: 'Create a privilege without expiration',
+        value: {
+          name: 'VIP Status',
+          description: 'Permanent VIP status with lifetime benefits',
+          pointCost: 2000
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Privilege created successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        data: ApiDocumentationHelper.SCHEMAS.PRIVILEGE,
+        message: { type: 'string', example: 'Privilege created successfully' },
+        meta: {
+          type: 'object',
+          properties: {
+            timestamp: { type: 'string', example: '2023-12-01T11:00:00.000Z' },
+            traceId: { type: 'string', example: 'trace-priv123' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.VALIDATION_ERROR)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.DUPLICATE_RESOURCE)
   async createPrivilege(
     @Body() createPrivilegeDto: CreatePrivilegeDto,
     @CurrentAdmin() admin: CurrentAdminData,
@@ -73,6 +134,25 @@ export class AdminPrivilegeController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Get all privileges',
+    description: 'Retrieve paginated list of privileges with optional filtering by name, active status, or search term.'
+  })
+  @ApiQuery(ApiDocumentationHelper.QUERY_PARAMS.PAGE)
+  @ApiQuery(ApiDocumentationHelper.QUERY_PARAMS.LIMIT)
+  @ApiQuery(ApiDocumentationHelper.QUERY_PARAMS.SEARCH)
+  @ApiQuery(ApiDocumentationHelper.QUERY_PARAMS.IS_ACTIVE)
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    description: 'Filter by privilege name (exact match)'
+  })
+  @ApiResponse(ApiDocumentationHelper.createPaginatedResponse(
+    ApiDocumentationHelper.SCHEMAS.PRIVILEGE,
+    'Privileges retrieved successfully'
+  ))
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
   async getPrivileges(
     @Query() filters: PrivilegeFiltersDto,
     @Query() pagination: PaginationDto,
@@ -125,6 +205,21 @@ export class AdminPrivilegeController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get privilege by ID',
+    description: 'Retrieve detailed information about a specific privilege by its unique identifier.'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Unique identifier of the privilege',
+    example: 'clpr123456789'
+  })
+  @ApiResponse(ApiDocumentationHelper.createSuccessResponse(
+    ApiDocumentationHelper.SCHEMAS.PRIVILEGE,
+    'Privilege retrieved successfully'
+  ))
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.NOT_FOUND)
   async getPrivilegeById(
     @Param('id') id: string,
     @CurrentAdmin() admin: CurrentAdminData,
@@ -156,6 +251,46 @@ export class AdminPrivilegeController {
   }
 
   @Put(':id')
+  @ApiOperation({
+    summary: 'Update privilege',
+    description: 'Update an existing privilege. All fields are optional - only provided fields will be updated.'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Unique identifier of the privilege to update',
+    example: 'clpr123456789'
+  })
+  @ApiBody({
+    type: UpdatePrivilegeDto,
+    description: 'Privilege update details',
+    examples: {
+      'update-cost': {
+        summary: 'Update point cost',
+        description: 'Update only the point cost of a privilege',
+        value: {
+          pointCost: 750
+        }
+      },
+      'full-update': {
+        summary: 'Full privilege update',
+        description: 'Update multiple fields of a privilege',
+        value: {
+          name: 'Premium Plus Access',
+          description: 'Enhanced premium access with additional features',
+          pointCost: 800,
+          validityDays: 45,
+          isActive: true
+        }
+      }
+    }
+  })
+  @ApiResponse(ApiDocumentationHelper.createSuccessResponse(
+    ApiDocumentationHelper.SCHEMAS.PRIVILEGE,
+    'Privilege updated successfully'
+  ))
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.VALIDATION_ERROR)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.NOT_FOUND)
   async updatePrivilege(
     @Param('id') id: string,
     @Body() updatePrivilegeDto: UpdatePrivilegeDto,
@@ -197,6 +332,21 @@ export class AdminPrivilegeController {
 
   @Put(':id/activate')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Activate privilege',
+    description: 'Activate a privilege, making it available for members to exchange points for.'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Unique identifier of the privilege to activate',
+    example: 'clpr123456789'
+  })
+  @ApiResponse(ApiDocumentationHelper.createSuccessResponse(
+    ApiDocumentationHelper.SCHEMAS.PRIVILEGE,
+    'Privilege activated successfully'
+  ))
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.NOT_FOUND)
   async activatePrivilege(
     @Param('id') id: string,
     @CurrentAdmin() admin: CurrentAdminData,
@@ -231,6 +381,21 @@ export class AdminPrivilegeController {
 
   @Put(':id/deactivate')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Deactivate privilege',
+    description: 'Deactivate a privilege, preventing new exchanges while preserving existing member privileges.'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Unique identifier of the privilege to deactivate',
+    example: 'clpr123456789'
+  })
+  @ApiResponse(ApiDocumentationHelper.createSuccessResponse(
+    ApiDocumentationHelper.SCHEMAS.PRIVILEGE,
+    'Privilege deactivated successfully'
+  ))
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.NOT_FOUND)
   async deactivatePrivilege(
     @Param('id') id: string,
     @CurrentAdmin() admin: CurrentAdminData,
@@ -265,6 +430,21 @@ export class AdminPrivilegeController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete privilege',
+    description: 'Permanently delete a privilege. This action cannot be undone and will affect existing member privileges.'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Unique identifier of the privilege to delete',
+    example: 'clpr123456789'
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Privilege deleted successfully'
+  })
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.UNAUTHORIZED)
+  @ApiResponse(ApiDocumentationHelper.COMMON_ERRORS.NOT_FOUND)
   async deletePrivilege(
     @Param('id') id: string,
     @CurrentAdmin() admin: CurrentAdminData,

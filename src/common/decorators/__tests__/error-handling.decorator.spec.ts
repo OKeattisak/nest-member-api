@@ -1,8 +1,8 @@
 import { HandleErrors, RetryOnFailure } from '../error-handling.decorator';
-import { DomainException } from '../../exceptions/domain.exception';
+import { DomainException } from '@/common/exceptions/domain.exception';
 
 // Mock LoggerService
-jest.mock('../../../infrastructure/logging/logger.service', () => ({
+jest.mock('@/infrastructure/logging/logger.service', () => ({
   LoggerService: jest.fn().mockImplementation(() => ({
     warn: jest.fn(),
     error: jest.fn(),

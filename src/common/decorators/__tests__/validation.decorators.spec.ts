@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import {
   IsEmailUniqueConstraint,
   IsUsernameUniqueConstraint,

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PointExpirationJob } from '../../domains/point/services/point-expiration.job';
-import { ExpirationProcessingResult } from '../../domains/point/services/point.service';
+import { PointExpirationJob } from '@/domains/point/services/point-expiration.job';
+import { ExpirationProcessingResult } from '@/domains/point/services/point.service';
 
 export interface JobExecutionResult {
   jobName: string;

@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { MemberRepository } from './member.repository';
-import { createTestingModule, cleanupDatabase, createTestMember } from '../../common/test-utils/test-database.setup';
+import { createTestingModule, cleanupDatabase, createTestMember } from '@/domains/common/test-utils/test-database.setup';
 
 describe('MemberRepository', () => {
   let module: TestingModule;

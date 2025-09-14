@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { MemberPrivilegeController } from '../member-privilege.controller';
-import { PrivilegeService } from '../../../domains/privilege/services/privilege.service';
-import { MemberJwtGuard } from '../../../common/guards/member-jwt.guard';
-import { Privilege } from '../../../domains/privilege/entities/privilege.entity';
+import { PrivilegeService } from '@/domains/privilege/services/privilege.service';
+import { MemberJwtGuard } from '@/common/guards/member-jwt.guard';
+import { Privilege } from '@/domains/privilege/entities/privilege.entity';
 
 describe('MemberPrivilegeController (Integration)', () => {
   let app: INestApplication;

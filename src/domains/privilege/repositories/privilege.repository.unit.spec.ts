@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrivilegeRepository } from './privilege.repository';
 import { MemberPrivilegeRepository } from './member-privilege.repository';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { createMockPrismaService, MockPrismaService } from '../../common/test-utils/prisma-mock.factory';
+import { createMockPrismaService, MockPrismaService } from '@/domains/common/test-utils/prisma-mock.factory';
 
 describe('PrivilegeRepository Unit Tests', () => {
   let repository: PrivilegeRepository;

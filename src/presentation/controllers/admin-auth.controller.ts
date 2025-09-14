@@ -1,10 +1,10 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Logger, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { AdminService } from '../../domains/admin/services/admin.service';
-import { JwtService } from '../../infrastructure/auth/jwt.service';
-import { AdminLoginDto, AdminLoginResponseDto } from '../../domains/admin/dto/admin-auth.dto';
-import { ApiSuccessResponse } from '../../common/interfaces/api-response.interface';
-import { AuditService } from '../../domains/audit/services/audit.service';
+import { AdminService } from '@/domains/admin/services/admin.service';
+import { JwtService } from '@/infrastructure/auth/jwt.service';
+import { AdminLoginDto, AdminLoginResponseDto } from '@/domains/admin/dto/admin-auth.dto';
+import { ApiSuccessResponse } from '@/common/interfaces/api-response.interface';
+import { AuditService } from '@/domains/audit/services/audit.service';
 import { ActorType } from '@prisma/client';
 import { Request } from 'express';
 

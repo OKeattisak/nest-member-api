@@ -1,5 +1,5 @@
 import { Point, PointType } from '@prisma/client';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 export interface CreatePointData {
   memberId: string;

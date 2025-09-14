@@ -1,0 +1,461 @@
+{
+  "info": {
+    "name": "Member Privileges API",
+    "description": "Collection for testing Member Privileges API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{member_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "member_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privilege_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Member Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.accessToken) {",
+                  "        pm.collectionVariables.set('member_token', response.data.accessToken);",
+                  "        console.log('Member token saved to collection variable');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"member@example.com\",\n  \"password\": \"MemberPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/member/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["member", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Browse Privileges",
+      "item": [
+        {
+          "name": "Get Available Privileges",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.length > 0) {",
+                  "        pm.collectionVariables.set('privilege_id', response.data[0].id);",
+                  "        console.log('First privilege ID saved:', response.data[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/member/privileges/available",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "available"]
+            },
+            "description": "Get all available privileges for exchange"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/member/privileges/available",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "privileges", "available"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"clpr123456789\",\n      \"name\": \"Premium Access\",\n      \"description\": \"Access to premium features and exclusive content\",\n      \"pointCost\": 500,\n      \"validityDays\": 30,\n      \"isActive\": true\n    },\n    {\n      \"id\": \"clpr987654321\",\n      \"name\": \"VIP Status\",\n      \"description\": \"Permanent VIP status with lifetime benefits\",\n      \"pointCost\": 2000,\n      \"validityDays\": null,\n      \"isActive\": true\n    }\n  ],\n  \"message\": \"Available privileges retrieved successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T13:00:00.000Z\",\n    \"traceId\": \"trace-avail123\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Exchange Privileges",
+      "item": [
+        {
+          "name": "Exchange for Premium Access",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"privilegeId\": \"{{privilege_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/member/privileges/exchange",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "exchange"]
+            },
+            "description": "Exchange points for a privilege using saved privilege ID"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"privilegeId\": \"clpr123456789\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/member/privileges/exchange",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "privileges", "exchange"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"memberPrivilegeId\": \"clmp123456789\",\n    \"privilegeName\": \"Premium Access\",\n    \"pointsDeducted\": 500,\n    \"expiresAt\": \"2024-01-01T00:00:00.000Z\",\n    \"exchangedAt\": \"2023-12-01T13:05:00.000Z\"\n  },\n  \"message\": \"Privilege exchanged successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T13:05:00.000Z\",\n    \"traceId\": \"trace-exchange123\"\n  }\n}"
+            },
+            {
+              "name": "Insufficient Points Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"privilegeId\": \"clpr987654321\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/member/privileges/exchange",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "privileges", "exchange"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"INSUFFICIENT_POINTS\",\n    \"message\": \"Insufficient points for this exchange\",\n    \"details\": {\n      \"required\": 2000,\n      \"available\": 1500,\n      \"shortfall\": 500\n    }\n  },\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T13:05:00.000Z\",\n    \"traceId\": \"trace-exchange123\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Exchange for VIP Status (High Cost)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"privilegeId\": \"clpr987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/member/privileges/exchange",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "exchange"]
+            },
+            "description": "Exchange for expensive VIP status (may fail with insufficient points)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Manage My Privileges",
+      "item": [
+        {
+          "name": "Get All My Privileges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/member/privileges/my-privileges",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "my-privileges"]
+            },
+            "description": "Get all privileges owned by the member (active and expired)"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/member/privileges/my-privileges",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "privileges", "my-privileges"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"clmp123456789\",\n      \"privilegeId\": \"clpr123456789\",\n      \"privilegeName\": \"Premium Access\",\n      \"privilegeDescription\": \"Access to premium features and exclusive content\",\n      \"pointCost\": 500,\n      \"grantedAt\": \"2023-12-01T13:05:00.000Z\",\n      \"expiresAt\": \"2024-01-01T00:00:00.000Z\",\n      \"isActive\": true,\n      \"isExpired\": false,\n      \"daysRemaining\": 30\n    },\n    {\n      \"id\": \"clmp987654321\",\n      \"privilegeId\": \"clpr555666777\",\n      \"privilegeName\": \"Early Access\",\n      \"privilegeDescription\": \"Get early access to new features and updates\",\n      \"pointCost\": 300,\n      \"grantedAt\": \"2023-10-01T10:00:00.000Z\",\n      \"expiresAt\": \"2023-11-30T23:59:59.000Z\",\n      \"isActive\": false,\n      \"isExpired\": true,\n      \"daysRemaining\": null\n    }\n  ],\n  \"message\": \"Member privileges retrieved successfully\",\n  \"meta\": {\n    \"timestamp\": \"2023-12-01T13:10:00.000Z\",\n    \"traceId\": \"trace-mypriv123\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Active Privileges Only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/member/privileges/active",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "active"]
+            },
+            "description": "Get only currently active (non-expired) privileges"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Complete Workflow Examples",
+      "item": [
+        {
+          "name": "Browse and Exchange Workflow",
+          "item": [
+            {
+              "name": "1. Check Available Privileges",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/member/privileges/available",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "privileges", "available"]
+                }
+              }
+            },
+            {
+              "name": "2. Check Current Point Balance",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/member/points/balance",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "points", "balance"]
+                }
+              }
+            },
+            {
+              "name": "3. Exchange for Privilege",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"privilegeId\": \"{{privilege_id}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/member/privileges/exchange",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "privileges", "exchange"]
+                }
+              }
+            },
+            {
+              "name": "4. Check My Privileges",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/member/privileges/my-privileges",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "privileges", "my-privileges"]
+                }
+              }
+            },
+            {
+              "name": "5. Check Updated Point Balance",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/member/points/balance",
+                  "host": ["{{base_url}}"],
+                  "path": ["member", "points", "balance"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Exchange - Invalid Privilege ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"privilegeId\": \"invalid-privilege-id\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/member/privileges/exchange",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "exchange"]
+            },
+            "description": "Test error handling for invalid privilege ID"
+          }
+        },
+        {
+          "name": "Exchange - Missing Privilege ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/member/privileges/exchange",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "exchange"]
+            },
+            "description": "Test validation error for missing privilege ID"
+          }
+        },
+        {
+          "name": "Exchange - Empty Privilege ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"privilegeId\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/member/privileges/exchange",
+              "host": ["{{base_url}}"],
+              "path": ["member", "privileges", "exchange"]
+            },
+            "description": "Test validation error for empty privilege ID"
+          }
+        }
+      ]
+    }
+  ]
+}

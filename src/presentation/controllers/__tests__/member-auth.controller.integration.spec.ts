@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { MemberAuthController } from '../member-auth.controller';
-import { MemberService } from '../../../domains/member/services/member.service';
-import { JwtService } from '../../../infrastructure/auth/jwt.service';
-import { Member } from '../../../domains/member/entities/member.entity';
+import { MemberService } from '@/domains/member/services/member.service';
+import { JwtService } from '@/infrastructure/auth/jwt.service';
+import { Member } from '@/domains/member/entities/member.entity';
 
 describe('MemberAuthController (Integration)', () => {
   let app: INestApplication;

@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength, MaxLength, IsNotEmpty, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IsEmailUnique, IsUsernameUnique, IsStrongPassword } from '../../../common/decorators/validation.decorators';
+import { IsEmailUnique, IsUsernameUnique, IsStrongPassword } from '@/common/decorators/validation.decorators';
 
 export class MemberRegisterDto {
   @IsEmail({}, { message: 'Please provide a valid email address' })

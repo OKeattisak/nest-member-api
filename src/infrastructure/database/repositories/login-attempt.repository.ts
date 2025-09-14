@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { ActorType, LoginAttempt as PrismaLoginAttempt } from '@prisma/client';
 import { 
   ILoginAttemptRepository, 
   CreateLoginAttemptData, 
   LoginAttemptFilters 
-} from '../../../domains/audit/repositories/login-attempt.repository.interface';
-import { LoginAttempt } from '../../../domains/audit/entities/login-attempt.entity';
-import { PaginationOptions, PaginatedResult } from '../../../domains/member/repositories/member.repository.interface';
+} from '@/domains/audit/repositories/login-attempt.repository.interface';
+import { LoginAttempt } from '@/domains/audit/entities/login-attempt.entity';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 @Injectable()
 export class LoginAttemptRepository implements ILoginAttemptRepository {

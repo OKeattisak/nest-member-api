@@ -1,4 +1,4 @@
-import { PointAmount } from '../../common/value-objects';
+import { PointAmount } from '@/domains/common/value-objects';
 
 export enum PointType {
   EARNED = 'EARNED',

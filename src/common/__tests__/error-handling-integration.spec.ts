@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { GlobalExceptionFilter } from '../filters/global-exception.filter';
-import { LoggerService } from '../../infrastructure/logging/logger.service';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
 import { RequestContext } from '../utils/trace.util';
 import { ErrorContextUtil } from '../utils/error-context.util';
 import { HandleErrors, RetryOnFailure } from '../decorators/error-handling.decorator';
-import { InsufficientPointsException } from '../../domains/point/exceptions';
-import { MemberNotFoundException } from '../../domains/member/exceptions';
+import { InsufficientPointsException } from '@/domains/point/exceptions';
+import { MemberNotFoundException } from '@/domains/member/exceptions';
 import { ValidationException } from '../exceptions/domain.exception';
 
 describe('Error Handling Integration', () => {

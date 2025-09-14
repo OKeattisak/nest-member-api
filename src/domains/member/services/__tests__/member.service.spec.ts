@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MemberService } from '../member.service';
-import { IMemberRepository } from '../../repositories/member.repository.interface';
-import { PasswordService } from '../../../../infrastructure/auth/password.service';
-import { Member } from '../../entities/member.entity';
+import { IMemberRepository } from '@/domains/member/repositories/member.repository.interface';
+import { PasswordService } from '@/infrastructure/auth/password.service';
+import { Member } from '@/domains/member/entities/member.entity';
 import {
   ConflictException,
   NotFoundExceptionDomain,

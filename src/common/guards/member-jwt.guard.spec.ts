@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { MemberJwtGuard } from './member-jwt.guard';
-import { JwtService } from '../../infrastructure/auth/jwt.service';
+import { JwtService } from '@/infrastructure/auth/jwt.service';
 
 describe('MemberJwtGuard', () => {
   let guard: MemberJwtGuard;

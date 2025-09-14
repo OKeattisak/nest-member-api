@@ -2,12 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { JobsModule } from '../jobs.module';
-import { JobsService } from '../jobs.service';
-import { PointExpirationJob } from '../../../domains/point/services/point-expiration.job';
-import { PointService } from '../../../domains/point/services/point.service';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { validateConfig } from '../../../infrastructure/config/config.interface';
+import { JobsModule } from '@/infrastructure/jobs/jobs.module';
+import { JobsService } from '@/infrastructure/jobs/jobs.service';
+import { PointExpirationJob } from '@/domains/point/services/point-expiration.job';
+import { PointService } from '@/domains/point/services/point.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
+import { validateConfig } from '@/infrastructure/config/config.interface';
 
 describe('Background Jobs E2E', () => {
   let app: INestApplication;

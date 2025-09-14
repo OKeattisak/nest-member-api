@@ -33,7 +33,7 @@ The mock factory provides:
 
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { 
   createMockPrismaService, 
   MockPrismaService, 

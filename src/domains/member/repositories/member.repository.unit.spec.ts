@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MemberRepository } from './member.repository';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { createMockPrismaService, MockPrismaService } from '../../common/test-utils/prisma-mock.factory';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
+import { createMockPrismaService, MockPrismaService } from '@/domains/common/test-utils/prisma-mock.factory';
 
 describe('MemberRepository Unit Tests', () => {
   let repository: MemberRepository;

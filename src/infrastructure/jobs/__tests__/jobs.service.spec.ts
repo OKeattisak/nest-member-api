@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import { JobsService } from '../jobs.service';
-import { PointExpirationJob } from '../../../domains/point/services/point-expiration.job';
-import { ExpirationProcessingResult } from '../../../domains/point/services/point.service';
+import { JobsService } from '@/infrastructure/jobs/jobs.service';
+import { PointExpirationJob } from '@/domains/point/services/point-expiration.job';
+import { ExpirationProcessingResult } from '@/domains/point/services/point.service';
 
 describe('JobsService', () => {
   let service: JobsService;

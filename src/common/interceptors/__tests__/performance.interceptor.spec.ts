@@ -3,7 +3,7 @@ import { ExecutionContext, CallHandler } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PerformanceInterceptor } from '../performance.interceptor';
-import { LoggerService } from '../../../infrastructure/logging/logger.service';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
 
 describe('PerformanceInterceptor', () => {
   let interceptor: PerformanceInterceptor;

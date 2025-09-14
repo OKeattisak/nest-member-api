@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AdminPointController } from '../admin-point.controller';
-import { PointService } from '../../../domains/point/services/point.service';
-import { AdminJwtGuard } from '../../../common/guards/admin-jwt.guard';
+import { PointService } from '@/domains/point/services/point.service';
+import { AdminJwtGuard } from '@/common/guards/admin-jwt.guard';
 import { PointType } from '@prisma/client';
 
 describe('AdminPointController (Integration)', () => {

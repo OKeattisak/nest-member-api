@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { PointType, Prisma } from '@prisma/client';
 import { PointService, AddPointsData, DeductPointsData } from './point.service';
 import { IPointRepository } from '../repositories/point.repository.interface';
-import { PaginationOptions } from '../../member/repositories/member.repository.interface';
+import { PaginationOptions } from '@/domains/member/repositories/member.repository.interface';
 
 describe('PointService', () => {
   let service: PointService;

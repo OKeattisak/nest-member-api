@@ -6,15 +6,15 @@ import {
   Logger 
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
-import { MemberJwtGuard } from '../../common/guards/member-jwt.guard';
-import { CurrentMember, CurrentMemberData } from '../../common/decorators/current-member.decorator';
-import { PointService } from '../../domains/point/services/point.service';
+import { MemberJwtGuard } from '@/common/guards/member-jwt.guard';
+import { CurrentMember, CurrentMemberData } from '@/common/decorators/current-member.decorator';
+import { PointService } from '@/domains/point/services/point.service';
 import { 
   PointHistoryQueryDto,
   PointBalanceResponseDto,
   PointTransactionResponseDto
-} from '../../domains/member/dto/member-point.dto';
-import { ApiSuccessResponse, PaginationMeta } from '../../common/interfaces/api-response.interface';
+} from '@/domains/member/dto/member-point.dto';
+import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-response.interface';
 
 @ApiTags('Member Points')
 @ApiBearerAuth('member-auth')

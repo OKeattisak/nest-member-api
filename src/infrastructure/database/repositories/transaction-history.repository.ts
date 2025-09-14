@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { TransactionType, TransactionHistory as PrismaTransactionHistory } from '@prisma/client';
 import { 
   ITransactionHistoryRepository, 
   CreateTransactionHistoryData, 
   TransactionHistoryFilters 
-} from '../../../domains/audit/repositories/transaction-history.repository.interface';
-import { TransactionHistory } from '../../../domains/audit/entities/transaction-history.entity';
-import { PaginationOptions, PaginatedResult } from '../../../domains/member/repositories/member.repository.interface';
+} from '@/domains/audit/repositories/transaction-history.repository.interface';
+import { TransactionHistory } from '@/domains/audit/entities/transaction-history.entity';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 @Injectable()
 export class TransactionHistoryRepository implements ITransactionHistoryRepository {

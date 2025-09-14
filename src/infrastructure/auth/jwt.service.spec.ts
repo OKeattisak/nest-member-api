@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
 import { JwtService } from './jwt.service';
-import { AdminRole } from '../../domains/admin/entities/admin.entity';
+import { AdminRole } from '@/domains/admin/entities/admin.entity';
 
 describe('JwtService', () => {
   let service: JwtService;

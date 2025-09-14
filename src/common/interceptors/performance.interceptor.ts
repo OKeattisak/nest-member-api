@@ -7,8 +7,8 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Request, Response } from 'express';
-import { LoggerService } from '../../infrastructure/logging/logger.service';
-import { performanceConfig } from '../../infrastructure/logging/winston.config';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
+import { performanceConfig } from '@/infrastructure/logging/winston.config';
 
 @Injectable()
 export class PerformanceInterceptor implements NestInterceptor {

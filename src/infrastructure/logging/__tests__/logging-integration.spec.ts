@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { LoggingModule } from '../logging.module';
-import { LoggerService } from '../logger.service';
+import { LoggingModule } from '@/infrastructure/logging/logging.module';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
 import { ConfigModule } from '@nestjs/config';
 
 describe('Logging Integration', () => {

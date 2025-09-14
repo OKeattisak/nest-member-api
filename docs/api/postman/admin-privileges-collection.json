@@ -1,0 +1,342 @@
+{
+  "info": {
+    "name": "Admin Privileges API",
+    "description": "Collection for testing Admin Privileges API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{admin_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privilege_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.accessToken) {",
+                  "        pm.collectionVariables.set('admin_token', response.data.accessToken);",
+                  "        console.log('Admin token saved to collection variable');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"admin@example.com\",\n  \"password\": \"AdminPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Privilege Management",
+      "item": [
+        {
+          "name": "Create Privilege - Premium Access",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.collectionVariables.set('privilege_id', response.data.id);",
+                  "        console.log('Privilege ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Access\",\n  \"description\": \"Access to premium features and exclusive content\",\n  \"pointCost\": 500,\n  \"validityDays\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/privileges",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges"]
+            }
+          }
+        },
+        {
+          "name": "Create Privilege - VIP Status (Permanent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"VIP Status\",\n  \"description\": \"Permanent VIP status with lifetime benefits\",\n  \"pointCost\": 2000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/privileges",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges"]
+            }
+          }
+        },
+        {
+          "name": "Get All Privileges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/privileges?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Privileges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/privileges?search=premium&isActive=true",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "premium"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Privilege by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/{{privilege_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "{{privilege_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Privilege - Point Cost Only",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pointCost\": 750\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/{{privilege_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "{{privilege_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Privilege - Full Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Plus Access\",\n  \"description\": \"Enhanced premium access with additional features\",\n  \"pointCost\": 800,\n  \"validityDays\": 45,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/{{privilege_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "{{privilege_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Privilege Status Management",
+      "item": [
+        {
+          "name": "Activate Privilege",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/{{privilege_id}}/activate",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "{{privilege_id}}", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Privilege",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/{{privilege_id}}/deactivate",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "{{privilege_id}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "Delete Privilege",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/{{privilege_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "{{privilege_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Create Privilege - Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AB\",\n  \"description\": \"\",\n  \"pointCost\": -100\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/privileges",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges"]
+            }
+          }
+        },
+        {
+          "name": "Get Privilege - Not Found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/invalid-privilege-id",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "invalid-privilege-id"]
+            }
+          }
+        },
+        {
+          "name": "Update Privilege - Not Found",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pointCost\": 600\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/privileges/invalid-privilege-id",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "privileges", "invalid-privilege-id"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

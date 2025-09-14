@@ -1,5 +1,5 @@
 import { IsString, IsUUID, IsNotEmpty } from 'class-validator';
-import { MemberExists, PrivilegeExists } from '../../../common/decorators/validation.decorators';
+import { MemberExists, PrivilegeExists } from '@/common/decorators/validation.decorators';
 
 export class ExchangePrivilegeDto {
   @IsString({ message: 'Member ID must be a string' })

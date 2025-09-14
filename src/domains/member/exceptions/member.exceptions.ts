@@ -1,4 +1,4 @@
-import { DomainException } from '../../../common/exceptions/domain.exception';
+import { DomainException } from '@/common/exceptions/domain.exception';
 
 export class MemberAlreadyExistsException extends DomainException {
   readonly code = 'MEMBER_ALREADY_EXISTS';

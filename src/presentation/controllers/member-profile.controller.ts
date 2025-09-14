@@ -10,15 +10,15 @@ import {
   Logger 
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { MemberJwtGuard } from '../../common/guards/member-jwt.guard';
-import { CurrentMember, CurrentMemberData } from '../../common/decorators/current-member.decorator';
-import { MemberService } from '../../domains/member/services/member.service';
+import { MemberJwtGuard } from '@/common/guards/member-jwt.guard';
+import { CurrentMember, CurrentMemberData } from '@/common/decorators/current-member.decorator';
+import { MemberService } from '@/domains/member/services/member.service';
 import { 
   UpdateMemberProfileDto,
   ChangePasswordDto
-} from '../../domains/member/dto/member-profile.dto';
-import { MemberProfileResponseDto } from '../../domains/member/dto/member-auth.dto';
-import { ApiSuccessResponse } from '../../common/interfaces/api-response.interface';
+} from '@/domains/member/dto/member-profile.dto';
+import { MemberProfileResponseDto } from '@/domains/member/dto/member-auth.dto';
+import { ApiSuccessResponse } from '@/common/interfaces/api-response.interface';
 
 @ApiTags('Member Profile')
 @ApiBearerAuth('member-auth')

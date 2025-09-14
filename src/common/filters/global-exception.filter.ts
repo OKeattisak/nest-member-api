@@ -6,10 +6,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ApiErrorResponse } from '../interfaces/api-response.interface';
-import { DomainException } from '../exceptions/domain.exception';
-import { RequestContext } from '../utils/trace.util';
-import { LoggerService } from '../../infrastructure/logging/logger.service';
+import { ApiErrorResponse } from '@/common/interfaces/api-response.interface';
+import { DomainException } from '@/common/exceptions/domain.exception';
+import { RequestContext } from '@/common/utils/trace.util';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 
 @Catch()

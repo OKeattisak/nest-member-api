@@ -1,11 +1,11 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Privilege as PrismaPrivilege, MemberPrivilege as PrismaMemberPrivilege } from '@prisma/client';
 import { IPrivilegeRepository, IMemberPrivilegeRepository, CreatePrivilegeData, UpdatePrivilegeData, PrivilegeFilters, MemberPrivilegeWithDetails } from '../repositories/privilege.repository.interface';
-import { PointService } from '../../point/services/point.service';
+import { PointService } from '@/domains/point/services/point.service';
 import { Privilege } from '../entities/privilege.entity';
-import { PointAmount } from '../../common/value-objects';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
-import { BusinessRuleException, NotFoundExceptionDomain, ValidationException } from '../../../common/exceptions/domain.exception';
+import { PointAmount } from '@/domains/common/value-objects';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
+import { BusinessRuleException, NotFoundExceptionDomain, ValidationException } from '@/common/exceptions/domain.exception';
 
 export interface ExchangePrivilegeData {
   memberId: string;

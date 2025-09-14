@@ -6,7 +6,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 
 // Email uniqueness validator
 @ValidatorConstraint({ name: 'isEmailUnique', async: true })

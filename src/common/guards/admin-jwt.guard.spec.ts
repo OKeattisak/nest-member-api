@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AdminJwtGuard } from './admin-jwt.guard';
-import { JwtService } from '../../infrastructure/auth/jwt.service';
-import { AdminRole } from '../../domains/admin/entities/admin.entity';
+import { JwtService } from '@/infrastructure/auth/jwt.service';
+import { AdminRole } from '@/domains/admin/entities/admin.entity';
 
 describe('AdminJwtGuard', () => {
   let guard: AdminJwtGuard;

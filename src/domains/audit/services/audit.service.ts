@@ -3,8 +3,8 @@ import { AuditAction, ActorType, TransactionType } from '@prisma/client';
 import { IAuditLogRepository } from '../repositories/audit-log.repository.interface';
 import { ILoginAttemptRepository } from '../repositories/login-attempt.repository.interface';
 import { ITransactionHistoryRepository } from '../repositories/transaction-history.repository.interface';
-import { LoggerService } from '../../../infrastructure/logging/logger.service';
-import { RequestContext } from '../../../common/utils/trace.util';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
+import { RequestContext } from '@/common/utils/trace.util';
 
 export interface AuditContext {
   actorType: ActorType;

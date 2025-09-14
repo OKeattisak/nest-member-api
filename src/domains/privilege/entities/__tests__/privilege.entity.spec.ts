@@ -1,5 +1,5 @@
 import { Privilege, PrivilegeProps, UpdatePrivilegeData } from '../privilege.entity';
-import { PointAmount } from '../../../common/value-objects';
+import { PointAmount } from '@/domains/common/value-objects';
 
 describe('Privilege Entity', () => {
   const validPrivilegeProps: PrivilegeProps = {

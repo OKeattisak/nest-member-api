@@ -1,4 +1,4 @@
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { Member, Privilege, MemberPrivilege } from '@prisma/client';
 
 export interface TestMemberOptions {

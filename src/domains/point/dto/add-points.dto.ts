@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional, Min, Max, IsNotEmpty, MaxLength, IsUUID } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { MemberExists, IsValidPointAmount } from '../../../common/decorators/validation.decorators';
+import { MemberExists, IsValidPointAmount } from '@/common/decorators/validation.decorators';
 
 export class AddPointsDto {
   @IsString({ message: 'Member ID must be a string' })

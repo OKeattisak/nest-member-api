@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { AdminRole } from '../../domains/admin/entities/admin.entity';
+import { AdminRole } from '@/domains/admin/entities/admin.entity';
 
 export interface CurrentAdminData {
   id: string;

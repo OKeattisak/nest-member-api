@@ -1,5 +1,5 @@
 import { Privilege, MemberPrivilege } from '@prisma/client';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 export interface CreatePrivilegeData {
   name: string;

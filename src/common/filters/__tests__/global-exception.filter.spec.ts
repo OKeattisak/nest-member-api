@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { GlobalExceptionFilter } from '../global-exception.filter';
-import { DomainException, ValidationException, NotFoundExceptionDomain } from '../../exceptions/domain.exception';
-import { RequestContext } from '../../utils/trace.util';
-import { LoggerService } from '../../../infrastructure/logging/logger.service';
+import { DomainException, ValidationException, NotFoundExceptionDomain } from '@/common/exceptions/domain.exception';
+import { RequestContext } from '@/common/utils/trace.util';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { InsufficientPointsException } from '../../../domains/point/exceptions';
-import { MemberNotFoundException } from '../../../domains/member/exceptions';
+import { InsufficientPointsException } from '@/domains/point/exceptions';
+import { MemberNotFoundException } from '@/domains/member/exceptions';
 
 describe('GlobalExceptionFilter', () => {
   let filter: GlobalExceptionFilter;
@@ -66,7 +66,7 @@ describe('GlobalExceptionFilter', () => {
 
   it('should handle domain exceptions correctly', () => {
     const exception = new ValidationException('Validation failed', { field: 'email' });
-    
+
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
@@ -86,7 +86,7 @@ describe('GlobalExceptionFilter', () => {
 
   it('should handle NotFoundExceptionDomain correctly', () => {
     const exception = new NotFoundExceptionDomain('User', '123');
-    
+
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
@@ -105,7 +105,7 @@ describe('GlobalExceptionFilter', () => {
 
   it('should handle HTTP exceptions correctly', () => {
     const exception = new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    
+
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
@@ -129,7 +129,7 @@ describe('GlobalExceptionFilter', () => {
       details: { field: 'value' },
     };
     const exception = new HttpException(exceptionResponse, HttpStatus.UNPROCESSABLE_ENTITY);
-    
+
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
@@ -149,7 +149,7 @@ describe('GlobalExceptionFilter', () => {
 
   it('should handle generic Error instances', () => {
     const exception = new Error('Generic error');
-    
+
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -168,7 +168,7 @@ describe('GlobalExceptionFilter', () => {
 
   it('should handle unknown exceptions', () => {
     const exception = 'string exception';
-    
+
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -200,7 +200,7 @@ describe('GlobalExceptionFilter', () => {
   describe('Domain-specific exceptions', () => {
     it('should handle InsufficientPointsException correctly', () => {
       const exception = new InsufficientPointsException(100, 50);
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
@@ -220,7 +220,7 @@ describe('GlobalExceptionFilter', () => {
 
     it('should handle MemberNotFoundException correctly', () => {
       const exception = new MemberNotFoundException('member-123');
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
@@ -245,7 +245,7 @@ describe('GlobalExceptionFilter', () => {
         clientVersion: '4.0.0',
         meta: { target: ['email'] },
       });
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
@@ -268,7 +268,7 @@ describe('GlobalExceptionFilter', () => {
         code: 'P2025',
         clientVersion: '4.0.0',
       });
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
@@ -289,7 +289,7 @@ describe('GlobalExceptionFilter', () => {
   describe('Error logging', () => {
     it('should log domain exceptions with appropriate level', () => {
       const exception = new ValidationException('Validation failed');
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       expect(mockLogger.warn).toHaveBeenCalled();
@@ -297,7 +297,7 @@ describe('GlobalExceptionFilter', () => {
 
     it('should log unexpected errors with error level', () => {
       const exception = new Error('Unexpected error');
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       expect(mockLogger.error).toHaveBeenCalled();
@@ -307,7 +307,7 @@ describe('GlobalExceptionFilter', () => {
   describe('Message sanitization', () => {
     it('should sanitize sensitive information in error messages', () => {
       const exception = new Error('Password validation failed for password: secret123');
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -327,7 +327,7 @@ describe('GlobalExceptionFilter', () => {
         password: 'secret123',
         token: 'jwt-token',
       });
-      
+
       filter.catch(exception, mockArgumentsHost);
 
       const call = mockResponse.json.mock.calls[0][0];
@@ -335,4 +335,5 @@ describe('GlobalExceptionFilter', () => {
       expect(call.error.details.password).toBe('[REDACTED]');
       expect(call.error.details.token).toBe('[REDACTED]');
     });
-  });});
+  });
+});

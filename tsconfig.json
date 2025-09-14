@@ -20,14 +20,33 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@/*": ["src/*"],
-      "@/common/*": ["src/common/*"],
-      "@/domains/*": ["src/domains/*"],
-      "@/application/*": ["src/application/*"],
-      "@/infrastructure/*": ["src/infrastructure/*"],
-      "@/presentation/*": ["src/presentation/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@/common/*": [
+        "src/common/*"
+      ],
+      "@/domains/*": [
+        "src/domains/*"
+      ],
+      "@/application/*": [
+        "src/application/*"
+      ],
+      "@/infrastructure/*": [
+        "src/infrastructure/*"
+      ],
+      "@/presentation/*": [
+        "src/presentation/*"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*spec.ts"
+  ]
 }

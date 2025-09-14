@@ -1,4 +1,4 @@
-import { Email, PointAmount } from '../../common/value-objects';
+import { Email, PointAmount } from '@/domains/common/value-objects';
 
 export interface UpdateProfileData {
   firstName?: string;

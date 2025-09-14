@@ -1,9 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { PrivilegeRepository } from './privilege.repository';
 import { MemberPrivilegeRepository } from './member-privilege.repository';
-import { MemberRepository } from '../../member/repositories/member.repository';
-import { createTestingModule, cleanupDatabase, createTestMember, createTestPrivilege } from '../../common/test-utils/test-database.setup';
+import { MemberRepository } from '@/domains/member/repositories/member.repository';
+import { createTestingModule, cleanupDatabase, createTestMember, createTestPrivilege } from '@/domains/common/test-utils/test-database.setup';
 
 describe('PrivilegeRepository', () => {
   let module: TestingModule;

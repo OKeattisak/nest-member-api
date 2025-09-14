@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Member, Prisma } from '@prisma/client';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import {
   IMemberRepository,
   CreateMemberData,

@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrivilegeService } from './privilege.service';
-import { PointService } from '../../point/services/point.service';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PointService } from '@/domains/point/services/point.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { PrivilegeRepository } from '../repositories/privilege.repository';
 import { MemberPrivilegeRepository } from '../repositories/member-privilege.repository';
-import { BusinessRuleException, NotFoundExceptionDomain } from '../../../common/exceptions/domain.exception';
+import { BusinessRuleException, NotFoundExceptionDomain } from '@/common/exceptions/domain.exception';
 import { Privilege, MemberPrivilege, Member, Point, PointType } from '@prisma/client';
 
 describe('PrivilegeService - Exchange Integration', () => {

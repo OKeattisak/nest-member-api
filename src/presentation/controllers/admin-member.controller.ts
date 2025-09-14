@@ -13,17 +13,17 @@ import {
   Logger 
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
-import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
-import { CurrentAdmin, CurrentAdminData } from '../../common/decorators/current-admin.decorator';
-import { MemberService } from '../../domains/member/services/member.service';
+import { AdminJwtGuard } from '@/common/guards/admin-jwt.guard';
+import { CurrentAdmin, CurrentAdminData } from '@/common/decorators/current-admin.decorator';
+import { MemberService } from '@/domains/member/services/member.service';
 import { 
   CreateMemberDto, 
   UpdateMemberDto, 
   MemberFiltersDto, 
   PaginationDto, 
   MemberResponseDto 
-} from '../../domains/admin/dto/member-management.dto';
-import { ApiSuccessResponse, PaginationMeta } from '../../common/interfaces/api-response.interface';
+} from '@/domains/admin/dto/member-management.dto';
+import { ApiSuccessResponse, PaginationMeta } from '@/common/interfaces/api-response.interface';
 
 @ApiTags('Admin Members')
 @ApiBearerAuth('admin-auth')

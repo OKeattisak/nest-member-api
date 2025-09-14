@@ -1,6 +1,6 @@
 import { IsString, MinLength, MaxLength, IsOptional, Matches, IsNotEmpty } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IsStrongPassword } from '../../../common/decorators/validation.decorators';
+import { IsStrongPassword } from '@/common/decorators/validation.decorators';
 
 export class UpdateMemberProfileDto {
   @IsOptional()

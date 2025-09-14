@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Privilege, Prisma } from '@prisma/client';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import {
   IPrivilegeRepository,
   CreatePrivilegeData,
   UpdatePrivilegeData,
   PrivilegeFilters,
 } from './privilege.repository.interface';
-import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { PaginationOptions, PaginatedResult } from '@/domains/member/repositories/member.repository.interface';
 
 @Injectable()
 export class PrivilegeRepository implements IPrivilegeRepository {

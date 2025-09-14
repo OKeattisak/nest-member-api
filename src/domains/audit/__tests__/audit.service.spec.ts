@@ -3,7 +3,7 @@ import { AuditService } from '../services/audit.service';
 import { IAuditLogRepository } from '../repositories/audit-log.repository.interface';
 import { ILoginAttemptRepository } from '../repositories/login-attempt.repository.interface';
 import { ITransactionHistoryRepository } from '../repositories/transaction-history.repository.interface';
-import { LoggerService } from '../../../infrastructure/logging/logger.service';
+import { LoggerService } from '@/infrastructure/logging/logger.service';
 import { AuditAction, ActorType, TransactionType } from '@prisma/client';
 
 describe('AuditService', () => {
