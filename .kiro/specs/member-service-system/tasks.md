@@ -96,7 +96,7 @@
   - Write integration tests for all member API endpoints
   - _Requirements: 2.1, 2.2, 2.4, 2.6, 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 13. Implement input validation and DTOs
+- [x] 13. Implement input validation and DTOs
   - Create DTOs for all API endpoints with comprehensive validation rules
   - Implement custom validation pipes for business rule validation
   - Add email uniqueness validation and password strength requirements
@@ -104,7 +104,7 @@
   - Write tests for validation scenarios and error responses
   - _Requirements: 2.1, 6.3, 4.5_
 
-- [ ] 14. Set up background job processing
+- [x] 14. Set up background job processing
   - Configure job queue system for point expiration processing
   - Implement scheduled job for daily point expiration with FIFO logic
   - Add job monitoring and error handling with retry mechanisms

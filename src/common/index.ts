@@ -15,5 +15,17 @@ export * from './filters/global-exception.filter';
 export * from './utils/trace.util';
 export * from './utils/response.util';
 
+// Pipes
+export * from './pipes';
+
+// DTOs
+export * from './dto';
+
+// Decorators
+export * from './decorators/validation.decorators';
+
+// Validation
+export * from './validation/validation.module';
+
 // Module
 export * from './common.module';

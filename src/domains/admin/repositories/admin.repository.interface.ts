@@ -1,5 +1,6 @@
 import { Admin } from '@prisma/client';
 import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { UpdateAdminData } from '../entities/admin.entity';
 
 export interface AdminFilters {
   email?: string;
@@ -14,14 +15,6 @@ export interface CreateAdminData {
   username: string;
   passwordHash: string;
   role: string;
-}
-
-export interface UpdateAdminData {
-  email?: string;
-  username?: string;
-  passwordHash?: string;
-  role?: string;
-  isActive?: boolean;
 }
 
 export interface IAdminRepository {

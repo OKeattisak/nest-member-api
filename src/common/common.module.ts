@@ -5,10 +5,11 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { PerformanceInterceptor } from './interceptors/performance.interceptor';
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import { LoggingModule } from '../infrastructure/logging/logging.module';
+import { ValidationModule } from './validation/validation.module';
 
 @Global()
 @Module({
-  imports: [LoggingModule],
+  imports: [LoggingModule, ValidationModule],
   providers: [
     {
       provide: APP_INTERCEPTOR,
@@ -27,6 +28,6 @@ import { LoggingModule } from '../infrastructure/logging/logging.module';
       useClass: GlobalExceptionFilter,
     },
   ],
-  exports: [],
+  exports: [ValidationModule],
 })
 export class CommonModule {}
