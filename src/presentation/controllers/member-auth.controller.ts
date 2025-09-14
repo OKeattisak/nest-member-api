@@ -10,6 +10,7 @@ import {
 } from '@/domains/member/dto/member-auth.dto';
 import { ApiSuccessResponse } from '@/common/interfaces/api-response.interface';
 import { AuditService } from '@/domains/audit/services/audit.service';
+import { RegisterThrottle, LoginThrottle } from '@/infrastructure/security/decorators/auth-throttle.decorator';
 import { ActorType } from '@prisma/client';
 import { Request } from 'express';
 
@@ -25,6 +26,7 @@ export class MemberAuthController {
   ) {}
 
   @Post('register')
+  @RegisterThrottle()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
     summary: 'Member registration',
@@ -106,6 +108,7 @@ export class MemberAuthController {
   }
 
   @Post('login')
+  @LoginThrottle()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ 
     summary: 'Member login',

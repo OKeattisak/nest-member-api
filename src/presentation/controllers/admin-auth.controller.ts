@@ -5,6 +5,7 @@ import { JwtService } from '@/infrastructure/auth/jwt.service';
 import { AdminLoginDto, AdminLoginResponseDto } from '@/domains/admin/dto/admin-auth.dto';
 import { ApiSuccessResponse } from '@/common/interfaces/api-response.interface';
 import { AuditService } from '@/domains/audit/services/audit.service';
+import { LoginThrottle } from '@/infrastructure/security/decorators/auth-throttle.decorator';
 import { ActorType } from '@prisma/client';
 import { Request } from 'express';
 
@@ -20,6 +21,7 @@ export class AdminAuthController {
   ) {}
 
   @Post('login')
+  @LoginThrottle()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ 
     summary: 'Admin login',

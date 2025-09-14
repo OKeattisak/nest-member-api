@@ -1,0 +1,73 @@
+# Production-specific Docker Compose configuration
+version: '3.8'
+
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-member_service_prod}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  redis:
+    volumes:
+      - redis_prod_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  app:
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-member_service_prod}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENABLE_DB_LOGGING: "false"
+      ENABLE_PERFORMANCE_LOGGING: "true"
+      ENABLE_CONSOLE_LOGGING: "false"
+      ENABLE_FILE_LOGGING: "true"
+      LOG_DIRECTORY: /app/logs
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://yourdomain.com}
+      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL:-60}
+      RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT:-100}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-12}
+      MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS:-3}
+      LOCKOUT_DURATION: ${LOCKOUT_DURATION:-1800000}
+      PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-12}
+      PASSWORD_REQUIRE_SYMBOLS: ${PASSWORD_REQUIRE_SYMBOLS:-true}
+      SLOW_QUERY_THRESHOLD: ${SLOW_QUERY_THRESHOLD:-1000}
+      SLOW_REQUEST_THRESHOLD: ${SLOW_REQUEST_THRESHOLD:-2000}
+      POINT_EXPIRATION_DAYS: ${POINT_EXPIRATION_DAYS:-365}
+      MAX_MEMBER_REGISTRATIONS_PER_DAY: ${MAX_MEMBER_REGISTRATIONS_PER_DAY:-100}
+    volumes:
+      - app_logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+volumes:
+  postgres_prod_data:
+    driver: local
+  redis_prod_data:
+    driver: local
+  app_logs:
+    driver: local

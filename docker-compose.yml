@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: member-service-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: member_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (for future caching/session management)
+  redis:
+    image: redis:7-alpine
+    container_name: member-service-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Member Service Application (Development)
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: member-service-app-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/member_service_db?schema=public
+      JWT_SECRET: dev-jwt-secret-key-for-members-at-least-32-characters-long
+      ADMIN_JWT_SECRET: dev-admin-jwt-secret-key-at-least-32-characters-long
+      LOG_LEVEL: debug
+      ENABLE_DB_LOGGING: "true"
+      ENABLE_PERFORMANCE_LOGGING: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health/live || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - dev
+
+  # Member Service Application (Production)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: member-service-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/member_service_db?schema=public
+      JWT_SECRET: ${JWT_SECRET:-production-jwt-secret-key-for-members-at-least-32-characters-long}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:-production-admin-jwt-secret-key-at-least-32-characters-long}
+      LOG_LEVEL: info
+      ENABLE_DB_LOGGING: "false"
+      ENABLE_PERFORMANCE_LOGGING: "true"
+      ENABLE_CONSOLE_LOGGING: "false"
+      ENABLE_FILE_LOGGING: "true"
+      LOG_DIRECTORY: /app/logs
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/health/live', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - prod
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: member-service-network

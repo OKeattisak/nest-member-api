@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { PointExpirationJob } from '@/domains/point/services/point-expiration.job';
 import { ExpirationProcessingResult } from '@/domains/point/services/point.service';
 
@@ -28,19 +28,60 @@ export interface JobStatus {
 }
 
 @Injectable()
-export class JobsService {
+export class JobsService implements OnModuleDestroy {
   private readonly logger = new Logger(JobsService.name);
   private readonly jobExecutions = new Map<string, JobExecutionResult[]>();
   private readonly maxExecutionHistory = 100; // Keep last 100 executions per job
+  private readonly runningJobs = new Set<string>();
+  private isShuttingDown = false;
+  private shutdownPromises: Promise<any>[] = [];
 
   constructor(private readonly pointExpirationJob: PointExpirationJob) {}
+
+  async onModuleDestroy() {
+    this.logger.log('JobsService shutting down, waiting for running jobs to complete...');
+    this.isShuttingDown = true;
+
+    // Wait for all running jobs to complete
+    if (this.shutdownPromises.length > 0) {
+      try {
+        await Promise.allSettled(this.shutdownPromises);
+        this.logger.log('All background jobs completed during shutdown');
+      } catch (error) {
+        this.logger.error('Error during job shutdown:', error);
+      }
+    }
+
+    // Force stop any remaining jobs after timeout
+    const shutdownTimeout = 30000; // 30 seconds
+    const timeoutPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        if (this.runningJobs.size > 0) {
+          this.logger.warn(`Forcing shutdown with ${this.runningJobs.size} jobs still running: ${Array.from(this.runningJobs).join(', ')}`);
+        }
+        resolve();
+      }, shutdownTimeout);
+    });
+
+    await Promise.race([
+      Promise.allSettled(this.shutdownPromises),
+      timeoutPromise,
+    ]);
+
+    this.logger.log('JobsService shutdown complete');
+  }
 
   /**
    * Execute point expiration job manually
    */
   async executePointExpirationJob(): Promise<JobExecutionResult> {
+    if (this.isShuttingDown) {
+      throw new Error('Cannot start new jobs during shutdown');
+    }
+
     const executionId = this.generateExecutionId();
     const jobName = 'point-expiration';
+    const jobKey = `${jobName}-${executionId}`;
     
     const execution: JobExecutionResult = {
       jobName,
@@ -50,33 +91,49 @@ export class JobsService {
     };
 
     this.logger.log(`Starting manual execution of ${jobName} job (${executionId})`);
+    this.runningJobs.add(jobKey);
+
+    // Create a promise for graceful shutdown tracking
+    const jobPromise = this.executeJobWithGracefulShutdown(jobKey, async () => {
+      try {
+        const result = await this.pointExpirationJob.triggerManualExpiration();
+        
+        execution.endTime = new Date();
+        execution.duration = execution.endTime.getTime() - execution.startTime.getTime();
+        execution.status = 'completed';
+        execution.result = result;
+
+        this.logger.log(`Manual ${jobName} job completed successfully (${executionId}). Duration: ${execution.duration}ms`);
+        
+        // Log summary of results
+        if (result.totalPointsExpired > 0) {
+          this.logger.log(`Point expiration summary: ${result.totalPointsExpired} points expired for ${result.membersAffected} members`);
+        }
+        
+        if (result.errors.length > 0) {
+          this.logger.warn(`Point expiration completed with ${result.errors.length} errors:`, result.errors);
+        }
+
+        return result;
+      } catch (error) {
+        execution.endTime = new Date();
+        execution.duration = execution.endTime.getTime() - execution.startTime.getTime();
+        execution.status = 'failed';
+        execution.error = error instanceof Error ? error.message : 'Unknown error';
+
+        this.logger.error(`Manual ${jobName} job failed (${executionId}):`, error);
+        throw error;
+      }
+    });
+
+    this.shutdownPromises.push(jobPromise);
 
     try {
-      const result = await this.pointExpirationJob.triggerManualExpiration();
-      
-      execution.endTime = new Date();
-      execution.duration = execution.endTime.getTime() - execution.startTime.getTime();
-      execution.status = 'completed';
-      execution.result = result;
-
-      this.logger.log(`Manual ${jobName} job completed successfully (${executionId}). Duration: ${execution.duration}ms`);
-      
-      // Log summary of results
-      if (result.totalPointsExpired > 0) {
-        this.logger.log(`Point expiration summary: ${result.totalPointsExpired} points expired for ${result.membersAffected} members`);
-      }
-      
-      if (result.errors.length > 0) {
-        this.logger.warn(`Point expiration completed with ${result.errors.length} errors:`, result.errors);
-      }
-
+      await jobPromise;
     } catch (error) {
-      execution.endTime = new Date();
-      execution.duration = execution.endTime.getTime() - execution.startTime.getTime();
-      execution.status = 'failed';
-      execution.error = error instanceof Error ? error.message : 'Unknown error';
-
-      this.logger.error(`Manual ${jobName} job failed (${executionId}):`, error);
+      // Error already logged in the job execution
+    } finally {
+      this.runningJobs.delete(jobKey);
     }
 
     this.recordJobExecution(execution);
@@ -191,7 +248,7 @@ export class JobsService {
   }
 
   private generateExecutionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private calculateRetryDelay(attempt: number): number {
@@ -201,5 +258,55 @@ export class JobsService {
 
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async executeJobWithGracefulShutdown<T>(
+    jobKey: string,
+    jobFunction: () => Promise<T>
+  ): Promise<T> {
+    try {
+      return await jobFunction();
+    } catch (error) {
+      if (this.isShuttingDown) {
+        this.logger.warn(`Job ${jobKey} interrupted during shutdown`);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Check if the service is shutting down
+   */
+  isShuttingDownStatus(): boolean {
+    return this.isShuttingDown;
+  }
+
+  /**
+   * Get currently running jobs
+   */
+  getRunningJobs(): string[] {
+    return Array.from(this.runningJobs);
+  }
+
+  /**
+   * Wait for all running jobs to complete (used during shutdown)
+   */
+  async waitForJobsToComplete(timeoutMs: number = 30000): Promise<void> {
+    if (this.runningJobs.size === 0) {
+      return;
+    }
+
+    this.logger.log(`Waiting for ${this.runningJobs.size} jobs to complete...`);
+
+    const timeoutPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        this.logger.warn(`Timeout waiting for jobs to complete. Still running: ${Array.from(this.runningJobs).join(', ')}`);
+        resolve();
+      }, timeoutMs);
+    });
+
+    const jobsPromise = Promise.allSettled(this.shutdownPromises);
+
+    await Promise.race([jobsPromise, timeoutPromise]);
   }
 }
