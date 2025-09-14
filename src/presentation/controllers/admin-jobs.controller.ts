@@ -12,6 +12,7 @@ import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
 import { JobsService, JobExecutionResult, JobMonitoringData } from '../../infrastructure/jobs/jobs.service';
 import { ApiSuccessResponse } from '../../common/interfaces/api-response.interface';
 import { ExpirationProcessingResult } from '../../domains/point/services/point.service';
+import { ApiTags } from '@nestjs/swagger';
 
 export interface JobStatusResponse {
   isProcessing: boolean;
@@ -23,6 +24,7 @@ export interface ExpiringPointsCheckResponse {
   daysChecked: number;
 }
 
+@ApiTags('Admin Jobs')
 @Controller('admin/jobs')
 @UseGuards(AdminJwtGuard)
 export class AdminJobsController {

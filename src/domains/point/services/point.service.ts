@@ -1,8 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Point as PrismaPoint, PointType } from '@prisma/client';
+import { Point as PrismaPoint, PointType, TransactionType, ActorType } from '@prisma/client';
 import { IPointRepository } from '../repositories/point.repository.interface';
 import { Point } from '../entities/point.entity';
 import { PaginationOptions, PaginatedResult } from '../../member/repositories/member.repository.interface';
+import { AuditService } from '../../audit/services/audit.service';
+import { RequestContext } from '../../../common/utils/trace.util';
 
 export interface AddPointsData {
   memberId: string;
@@ -51,7 +53,8 @@ export class PointService {
   private readonly logger = new Logger(PointService.name);
 
   constructor(
-    @Inject('IPointRepository') private readonly pointRepository: IPointRepository
+    @Inject('IPointRepository') private readonly pointRepository: IPointRepository,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -68,13 +71,40 @@ export class PointService {
     }
 
     try {
-      await this.pointRepository.create({
+      // Get balance before transaction
+      const balanceBefore = await this.getAvailableBalance(data.memberId);
+
+      const point = await this.pointRepository.create({
         memberId: data.memberId,
         amount: data.amount,
         type: PointType.EARNED,
         description: data.description,
         expiresAt,
       });
+
+      // Get balance after transaction
+      const balanceAfter = await this.getAvailableBalance(data.memberId);
+
+      // Log audit trail
+      await this.auditService.logPointTransaction(
+        {
+          memberId: data.memberId,
+          pointId: point.id,
+          amount: data.amount,
+          description: data.description,
+          balanceBefore,
+          balanceAfter,
+          metadata: {
+            expiresAt: expiresAt?.toISOString(),
+            expirationDays: data.expirationDays,
+          },
+        },
+        TransactionType.POINT_EARNED,
+        {
+          actorType: ActorType.SYSTEM, // This could be ADMIN if called by admin
+          traceId: RequestContext.getTraceId(),
+        },
+      );
 
       this.logger.log(`Successfully added ${data.amount} points to member ${data.memberId}`);
     } catch (error) {
@@ -90,14 +120,41 @@ export class PointService {
     this.logger.log(`Deducting ${data.amount} points from member ${data.memberId}`);
 
     try {
+      // Get balance before transaction
+      const balanceBefore = await this.getAvailableBalance(data.memberId);
+      
       // Validate sufficient balance first
-      const availableBalance = await this.getAvailableBalance(data.memberId);
-      if (availableBalance < data.amount) {
-        throw new Error(`Insufficient points. Required: ${data.amount}, Available: ${availableBalance}`);
+      if (balanceBefore < data.amount) {
+        throw new Error(`Insufficient points. Required: ${data.amount}, Available: ${balanceBefore}`);
       }
 
       // Use repository's FIFO deduction logic
-      await this.pointRepository.deductPoints(data.memberId, data.amount, data.description);
+      const deductedPoints = await this.pointRepository.deductPoints(data.memberId, data.amount, data.description);
+
+      // Get balance after transaction
+      const balanceAfter = await this.getAvailableBalance(data.memberId);
+
+      // Log audit trail for each deducted point
+      for (const point of deductedPoints) {
+        await this.auditService.logPointTransaction(
+          {
+            memberId: data.memberId,
+            pointId: point.id,
+            amount: Number(point.amount),
+            description: data.description,
+            balanceBefore,
+            balanceAfter,
+            metadata: {
+              fifoDeduction: true,
+            },
+          },
+          TransactionType.POINT_DEDUCTED,
+          {
+            actorType: ActorType.SYSTEM, // This could be ADMIN if called by admin
+            traceId: RequestContext.getTraceId(),
+          },
+        );
+      }
 
       this.logger.log(`Successfully deducted ${data.amount} points from member ${data.memberId}`);
     } catch (error) {
@@ -113,10 +170,12 @@ export class PointService {
     this.logger.log(`Exchanging ${amount} points for privilege '${privilegeName}' for member ${memberId}`);
 
     try {
+      // Get balance before transaction
+      const balanceBefore = await this.getAvailableBalance(memberId);
+      
       // Validate sufficient balance first
-      const availableBalance = await this.getAvailableBalance(memberId);
-      if (availableBalance < amount) {
-        throw new Error(`Insufficient points for privilege exchange. Required: ${amount}, Available: ${availableBalance}`);
+      if (balanceBefore < amount) {
+        throw new Error(`Insufficient points for privilege exchange. Required: ${amount}, Available: ${balanceBefore}`);
       }
 
       // Get available points in FIFO order
@@ -145,7 +204,34 @@ export class PointService {
       }
 
       // Create exchange records
-      await this.pointRepository.createMany(exchangeRecords);
+      const createdExchangeRecords = await this.pointRepository.createMany(exchangeRecords);
+
+      // Get balance after transaction
+      const balanceAfter = await this.getAvailableBalance(memberId);
+
+      // Log audit trail for each exchange record
+      for (const record of createdExchangeRecords) {
+        await this.auditService.logPointTransaction(
+          {
+            memberId,
+            pointId: record.id,
+            amount: Number(record.amount),
+            description: record.description,
+            balanceBefore,
+            balanceAfter,
+            metadata: {
+              privilegeName,
+              fifoExchange: true,
+            },
+          },
+          TransactionType.POINT_EXCHANGED,
+          {
+            actorType: ActorType.MEMBER, // Member initiated exchange
+            actorId: memberId,
+            traceId: RequestContext.getTraceId(),
+          },
+        );
+      }
 
       this.logger.log(`Successfully exchanged ${amount} points for privilege '${privilegeName}' for member ${memberId}`);
     } catch (error) {
@@ -314,6 +400,9 @@ export class PointService {
   // Private helper methods
 
   private async processExpiredPointsForMember(memberId: string, expiredPoints: PrismaPoint[]): Promise<void> {
+    // Get balance before expiration
+    const balanceBefore = await this.getAvailableBalance(memberId);
+
     // Mark points as expired
     const pointIds = expiredPoints.map(p => p.id);
     await this.pointRepository.expirePoints(pointIds);
@@ -326,7 +415,41 @@ export class PointService {
       description: `Automatic expiration of points earned on ${point.createdAt.toISOString().split('T')[0]}`,
     }));
 
-    await this.pointRepository.createMany(expirationRecords);
+    const createdExpirationRecords = await this.pointRepository.createMany(expirationRecords);
+
+    // Get balance after expiration
+    const balanceAfter = await this.getAvailableBalance(memberId);
+
+    // Log audit trail for each expired point
+    for (let i = 0; i < expiredPoints.length; i++) {
+      const expiredPoint = expiredPoints[i];
+      const expirationRecord = createdExpirationRecords[i];
+
+      if (!expiredPoint || !expirationRecord) {
+        continue;
+      }
+
+      await this.auditService.logPointTransaction(
+        {
+          memberId,
+          pointId: expirationRecord.id,
+          amount: Number(expiredPoint.amount),
+          description: `Automatic expiration of points earned on ${expiredPoint.createdAt.toISOString().split('T')[0]}`,
+          balanceBefore,
+          balanceAfter,
+          metadata: {
+            originalPointId: expiredPoint.id,
+            originalEarnedDate: expiredPoint.createdAt.toISOString(),
+            automaticExpiration: true,
+          },
+        },
+        TransactionType.POINT_EXPIRED,
+        {
+          actorType: ActorType.SYSTEM,
+          traceId: RequestContext.getTraceId(),
+        },
+      );
+    }
   }
 
   private groupPointsByMember(points: PrismaPoint[]): Map<string, PrismaPoint[]> {

@@ -1,30 +1,32 @@
-import { 
-  Controller, 
-  Get, 
+import {
+  Controller,
+  Get,
   Post,
-  Body, 
-  HttpCode, 
-  HttpStatus, 
+  Body,
+  HttpCode,
+  HttpStatus,
   UseGuards,
-  Logger 
+  Logger
 } from '@nestjs/common';
 import { MemberJwtGuard } from '../../common/guards/member-jwt.guard';
 import { CurrentMember, CurrentMemberData } from '../../common/decorators/current-member.decorator';
 import { PrivilegeService } from '../../domains/privilege/services/privilege.service';
-import { 
+import {
   ExchangePrivilegeDto,
   AvailablePrivilegeResponseDto,
   MemberPrivilegeResponseDto,
   PrivilegeExchangeResponseDto
 } from '../../domains/member/dto/member-privilege.dto';
 import { ApiSuccessResponse } from '../../common/interfaces/api-response.interface';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Member Privileges')
 @Controller('member/privileges')
 @UseGuards(MemberJwtGuard)
 export class MemberPrivilegeController {
   private readonly logger = new Logger(MemberPrivilegeController.name);
 
-  constructor(private readonly privilegeService: PrivilegeService) {}
+  constructor(private readonly privilegeService: PrivilegeService) { }
 
   @Get('available')
   async getAvailablePrivileges(

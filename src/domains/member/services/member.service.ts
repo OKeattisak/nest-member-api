@@ -10,6 +10,9 @@ import {
   BusinessRuleException,
   UnauthorizedException,
 } from '../../../common/exceptions/domain.exception';
+import { AuditService } from '../../audit/services/audit.service';
+import { AuditAction, ActorType } from '@prisma/client';
+import { RequestContext } from '../../../common/utils/trace.util';
 
 export interface RegisterMemberData {
   email: string;
@@ -41,6 +44,7 @@ export class MemberService {
     @Inject('IMemberRepository')
     private readonly memberRepository: IMemberRepository,
     private readonly passwordService: PasswordService,
+    private readonly auditService: AuditService,
   ) {}
 
   async registerMember(data: RegisterMemberData): Promise<Member> {
@@ -81,6 +85,29 @@ export class MemberService {
     };
 
     const createdMember = await this.memberRepository.create(memberData);
+    
+    // Log member creation
+    await this.auditService.logEntityCreation(
+      {
+        entityType: 'Member',
+        entityId: createdMember.id,
+        newValues: {
+          email: createdMember.email,
+          username: createdMember.username,
+          firstName: createdMember.firstName,
+          lastName: createdMember.lastName,
+          isActive: createdMember.isActive,
+        },
+        metadata: {
+          registrationMethod: 'self_registration',
+        },
+      },
+      {
+        actorType: ActorType.MEMBER,
+        actorId: createdMember.id,
+        traceId: RequestContext.getTraceId(),
+      },
+    );
     
     return this.toDomainEntity(createdMember);
   }
@@ -172,6 +199,32 @@ export class MemberService {
       username: data.username,
     });
 
+    // Log member profile update
+    await this.auditService.logEntityUpdate(
+      {
+        entityType: 'Member',
+        entityId: id,
+        oldValues: {
+          firstName: existingMember.firstName,
+          lastName: existingMember.lastName,
+          username: existingMember.username,
+        },
+        newValues: {
+          firstName: data.firstName || existingMember.firstName,
+          lastName: data.lastName || existingMember.lastName,
+          username: data.username || existingMember.username,
+        },
+        metadata: {
+          updateType: 'profile_update',
+        },
+      },
+      {
+        actorType: ActorType.MEMBER,
+        actorId: id,
+        traceId: RequestContext.getTraceId(),
+      },
+    );
+
     return this.toDomainEntity(updatedMemberRecord);
   }
 
@@ -204,6 +257,28 @@ export class MemberService {
       isActive: false,
     });
 
+    // Log member deactivation
+    await this.auditService.logEntityUpdate(
+      {
+        entityType: 'Member',
+        entityId: id,
+        oldValues: {
+          isActive: existingMember.isActive,
+        },
+        newValues: {
+          isActive: false,
+        },
+        metadata: {
+          updateType: 'deactivation',
+        },
+      },
+      {
+        actorType: ActorType.MEMBER,
+        actorId: id,
+        traceId: RequestContext.getTraceId(),
+      },
+    );
+
     return this.toDomainEntity(updatedMemberRecord);
   }
 
@@ -233,6 +308,30 @@ export class MemberService {
 
     // Perform soft delete in repository
     await this.memberRepository.softDelete(id);
+
+    // Log member soft deletion
+    await this.auditService.logEntityDeletion(
+      {
+        entityType: 'Member',
+        entityId: id,
+        oldValues: {
+          email: existingMember.email,
+          username: existingMember.username,
+          firstName: existingMember.firstName,
+          lastName: existingMember.lastName,
+          isActive: existingMember.isActive,
+        },
+        metadata: {
+          deletionType: 'soft_delete',
+        },
+      },
+      {
+        actorType: ActorType.MEMBER,
+        actorId: id,
+        traceId: RequestContext.getTraceId(),
+      },
+      true, // isSoftDelete
+    );
   }
 
   async changePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {

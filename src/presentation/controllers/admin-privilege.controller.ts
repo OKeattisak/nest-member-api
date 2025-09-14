@@ -23,7 +23,9 @@ import {
 } from '../../domains/admin/dto/privilege-management.dto';
 import { PaginationDto } from '../../domains/admin/dto/member-management.dto';
 import { ApiSuccessResponse, PaginationMeta } from '../../common/interfaces/api-response.interface';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Admin Privileges')
 @Controller('admin/privileges')
 @UseGuards(AdminJwtGuard)
 export class AdminPrivilegeController {

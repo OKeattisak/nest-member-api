@@ -15,4 +15,4 @@ import { PasswordService } from './password.service';
   providers: [JwtService, PasswordService],
   exports: [JwtService, PasswordService],
 })
-export class AuthModule {}
+export class AuthModule { }

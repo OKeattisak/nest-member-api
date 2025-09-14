@@ -21,7 +21,9 @@ import {
 } from '../../domains/admin/dto/point-management.dto';
 import { PaginationDto } from '../../domains/admin/dto/member-management.dto';
 import { ApiSuccessResponse, PaginationMeta } from '../../common/interfaces/api-response.interface';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Admin Points')
 @Controller('admin/points')
 @UseGuards(AdminJwtGuard)
 export class AdminPointController {

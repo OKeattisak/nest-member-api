@@ -4,18 +4,27 @@ import { AdminJobsController } from './controllers/admin-jobs.controller';
 import { AdminMemberController } from './controllers/admin-member.controller';
 import { AdminPointController } from './controllers/admin-point.controller';
 import { AdminPrivilegeController } from './controllers/admin-privilege.controller';
+import { MemberAuthController } from './controllers/member-auth.controller';
+import { MemberPointController } from './controllers/member-point.controller';
+import { MemberPrivilegeController } from './controllers/member-privilege.controller';
+import { MemberProfileController } from './controllers/member-profile.controller';
 import { AdminModule } from '../domains/admin/admin.module';
+import { MemberModule } from '../domains/member/member.module';
+import { PointModule } from '../domains/point/point.module';
+import { PrivilegeModule } from '../domains/privilege/privilege.module';
 import { AuthModule } from '../infrastructure/auth/auth.module';
 import { JobsModule } from '../infrastructure/jobs/jobs.module';
-import { MemberService } from '../domains/member/services/member.service';
-import { PointService } from '../domains/point/services/point.service';
-import { PrivilegeService } from '../domains/privilege/services/privilege.service';
+import { AuditModule } from '../domains/audit/audit.module';
 
 @Module({
   imports: [
     AdminModule,
+    MemberModule,
+    PointModule,
+    PrivilegeModule,
     AuthModule,
     JobsModule,
+    AuditModule,
   ],
   controllers: [
     AdminAuthController,
@@ -23,22 +32,10 @@ import { PrivilegeService } from '../domains/privilege/services/privilege.servic
     AdminMemberController,
     AdminPointController,
     AdminPrivilegeController,
-  ],
-  providers: [
-    // Services will be imported from their respective modules
-    // These are temporary providers until proper module imports are set up
-    {
-      provide: MemberService,
-      useValue: {}, // This will be replaced with proper injection
-    },
-    {
-      provide: PointService,
-      useValue: {}, // This will be replaced with proper injection
-    },
-    {
-      provide: PrivilegeService,
-      useValue: {}, // This will be replaced with proper injection
-    },
+    MemberAuthController,
+    MemberPointController,
+    MemberPrivilegeController,
+    MemberProfileController,
   ],
 })
 export class PresentationModule {}

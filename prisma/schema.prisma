@@ -22,8 +22,9 @@ model Member {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
   
-  points            Point[]
-  memberPrivileges  MemberPrivilege[]
+  points              Point[]
+  memberPrivileges    MemberPrivilege[]
+  transactionHistory  TransactionHistory[]
   
   @@map("members")
 }
@@ -96,4 +97,100 @@ enum PointType {
 enum AdminRole {
   SUPER_ADMIN
   ADMIN
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  entityType  String    // Member, Point, Privilege, MemberPrivilege, Admin
+  entityId    String    // ID of the affected entity
+  action      AuditAction
+  actorType   ActorType // ADMIN, MEMBER, SYSTEM
+  actorId     String?   // ID of the actor (admin/member), null for system actions
+  oldValues   Json?     // Previous values (for updates)
+  newValues   Json?     // New values (for creates/updates)
+  metadata    Json?     // Additional context data
+  ipAddress   String?   // IP address of the request
+  userAgent   String?   // User agent string
+  traceId     String?   // Request trace ID
+  createdAt   DateTime  @default(now())
+  
+  @@index([entityType, entityId])
+  @@index([actorType, actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model LoginAttempt {
+  id            String        @id @default(cuid())
+  emailOrUsername String
+  actorType     ActorType     // ADMIN or MEMBER
+  success       Boolean
+  failureReason String?       // Reason for failure (invalid_credentials, account_inactive, etc.)
+  ipAddress     String?
+  userAgent     String?
+  traceId       String?
+  createdAt     DateTime      @default(now())
+  
+  @@index([emailOrUsername])
+  @@index([actorType])
+  @@index([success])
+  @@index([createdAt])
+  @@map("login_attempts")
+}
+
+model TransactionHistory {
+  id            String            @id @default(cuid())
+  memberId      String
+  transactionType TransactionType
+  entityType    String            // Point, Privilege
+  entityId      String            // ID of the point or privilege
+  amount        Decimal?          @db.Decimal(10, 2) // For point transactions
+  description   String
+  metadata      Json?             // Additional transaction details
+  balanceBefore Decimal?          @db.Decimal(10, 2) // Point balance before transaction
+  balanceAfter  Decimal?          @db.Decimal(10, 2) // Point balance after transaction
+  traceId       String?
+  createdAt     DateTime          @default(now())
+  
+  member Member @relation(fields: [memberId], references: [id])
+  
+  @@index([memberId])
+  @@index([transactionType])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("transaction_history")
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  SOFT_DELETE
+  ACTIVATE
+  DEACTIVATE
+  LOGIN
+  LOGOUT
+  POINT_ADD
+  POINT_DEDUCT
+  POINT_EXPIRE
+  PRIVILEGE_EXCHANGE
+  PRIVILEGE_GRANT
+  PRIVILEGE_REVOKE
+}
+
+enum ActorType {
+  ADMIN
+  MEMBER
+  SYSTEM
+}
+
+enum TransactionType {
+  POINT_EARNED
+  POINT_DEDUCTED
+  POINT_EXPIRED
+  POINT_EXCHANGED
+  PRIVILEGE_GRANTED
+  PRIVILEGE_EXPIRED
+  PRIVILEGE_REVOKED
 }
