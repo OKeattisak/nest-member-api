@@ -1,14 +1,27 @@
 import { IsString, IsEmail, IsNotEmpty, IsOptional, IsBoolean, MinLength, MaxLength, IsInt, Min, Max, Matches } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 import { IsEmailUnique, IsUsernameUnique, IsStrongPassword } from '@/common/decorators/validation.decorators';
 
 export class CreateMemberDto {
+  @ApiProperty({
+    description: 'Member email address',
+    example: 'john.doe@example.com',
+    format: 'email'
+  })
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsNotEmpty({ message: 'Email is required' })
   @Transform(({ value }) => value?.toLowerCase().trim())
   @IsEmailUnique({ message: 'Email is already registered' })
   email!: string;
 
+  @ApiProperty({
+    description: 'Unique username for the member',
+    example: 'johndoe123',
+    minLength: 3,
+    maxLength: 50,
+    pattern: '^[a-zA-Z0-9_-]+$'
+  })
   @IsString({ message: 'Username must be a string' })
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(3, { message: 'Username must be at least 3 characters long' })
@@ -18,11 +31,21 @@ export class CreateMemberDto {
   @IsUsernameUnique({ message: 'Username is already taken' })
   username!: string;
 
+  @ApiProperty({
+    description: 'Strong password for the member account',
+    example: 'SecurePass123!',
+    minLength: 8
+  })
   @IsString({ message: 'Password must be a string' })
   @IsNotEmpty({ message: 'Password is required' })
   @IsStrongPassword()
   password!: string;
 
+  @ApiProperty({
+    description: 'Member first name',
+    example: 'John',
+    maxLength: 100
+  })
   @IsString({ message: 'First name must be a string' })
   @IsNotEmpty({ message: 'First name is required' })
   @MaxLength(100, { message: 'First name cannot exceed 100 characters' })
@@ -30,6 +53,11 @@ export class CreateMemberDto {
   @Transform(({ value }) => value?.trim())
   firstName!: string;
 
+  @ApiProperty({
+    description: 'Member last name',
+    example: 'Doe',
+    maxLength: 100
+  })
   @IsString({ message: 'Last name must be a string' })
   @IsNotEmpty({ message: 'Last name is required' })
   @MaxLength(100, { message: 'Last name cannot exceed 100 characters' })
@@ -39,6 +67,13 @@ export class CreateMemberDto {
 }
 
 export class UpdateMemberDto {
+  @ApiProperty({
+    description: 'Updated username for the member',
+    example: 'johndoe456',
+    required: false,
+    minLength: 3,
+    maxLength: 50
+  })
   @IsOptional()
   @IsString({ message: 'Username must be a string' })
   @MinLength(3, { message: 'Username must be at least 3 characters long' })
@@ -47,6 +82,12 @@ export class UpdateMemberDto {
   @Transform(({ value }) => value?.trim())
   username?: string;
 
+  @ApiProperty({
+    description: 'Updated first name',
+    example: 'John',
+    required: false,
+    maxLength: 100
+  })
   @IsOptional()
   @IsString({ message: 'First name must be a string' })
   @MaxLength(100, { message: 'First name cannot exceed 100 characters' })
@@ -54,6 +95,12 @@ export class UpdateMemberDto {
   @Transform(({ value }) => value?.trim())
   firstName?: string;
 
+  @ApiProperty({
+    description: 'Updated last name',
+    example: 'Smith',
+    required: false,
+    maxLength: 100
+  })
   @IsOptional()
   @IsString({ message: 'Last name must be a string' })
   @MaxLength(100, { message: 'Last name cannot exceed 100 characters' })
@@ -61,6 +108,11 @@ export class UpdateMemberDto {
   @Transform(({ value }) => value?.trim())
   lastName?: string;
 
+  @ApiProperty({
+    description: 'Member active status',
+    example: true,
+    required: false
+  })
   @IsOptional()
   @IsBoolean({ message: 'isActive must be a boolean' })
   isActive?: boolean;
