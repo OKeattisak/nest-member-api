@@ -144,6 +144,35 @@ export class SecurityService {
    * Check if request contains potentially malicious patterns
    */
   containsMaliciousPatterns(input: string): boolean {
+    const appConfig = this.configService.get<AppConfigType>('app')!;
+    const isDevelopment = appConfig.nodeEnv === 'development';
+    
+    // In development, be less strict to avoid blocking legitimate API calls
+    if (isDevelopment) {
+      const developmentPatterns = [
+        // Only check for obvious XSS attempts
+        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+        /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+        
+        // Protocol handlers (but allow data: for legitimate use)
+        /javascript:/gi,
+        /vbscript:/gi,
+        
+        // Obvious event handlers
+        /onclick\s*=/gi,
+        /onload\s*=/gi,
+        /onerror\s*=/gi,
+        
+        // Clear SQL injection attempts
+        /(\bUNION\s+SELECT\b)/gi,
+        /(\bDROP\s+TABLE\b)/gi,
+        /(\bDELETE\s+FROM\b)/gi,
+      ];
+      
+      return developmentPatterns.some(pattern => pattern.test(input));
+    }
+    
+    // Production patterns (more strict)
     const maliciousPatterns = [
       // XSS patterns
       /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
@@ -216,8 +245,25 @@ export class SecurityService {
    * Validate IP address format
    */
   isValidIpAddress(ip: string): boolean {
+    const appConfig = this.configService.get<AppConfigType>('app')!;
+    const isDevelopment = appConfig.nodeEnv === 'development';
+    
+    // In development, allow localhost variations
+    if (isDevelopment) {
+      const localhostPatterns = [
+        '127.0.0.1',
+        '::1',
+        'localhost',
+        '0.0.0.0',
+      ];
+      
+      if (localhostPatterns.includes(ip)) {
+        return true;
+      }
+    }
+    
     const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+    const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
     
     return ipv4Regex.test(ip) || ipv6Regex.test(ip);
   }
@@ -248,11 +294,28 @@ export class SecurityService {
    * Validate User-Agent header
    */
   isValidUserAgent(userAgent: string): boolean {
+    const appConfig = this.configService.get<AppConfigType>('app')!;
+    const isDevelopment = appConfig.nodeEnv === 'development';
+    
     if (!userAgent || userAgent.length < 10 || userAgent.length > 512) {
       return false;
     }
 
-    // Check for suspicious patterns in User-Agent
+    // In development, be more lenient with User-Agent validation
+    if (isDevelopment) {
+      // Only block obviously malicious patterns
+      const maliciousPatterns = [
+        /sqlmap/gi,
+        /nikto/gi,
+        /nessus/gi,
+        /masscan/gi,
+        /nmap/gi,
+      ];
+      
+      return !maliciousPatterns.some(pattern => pattern.test(userAgent));
+    }
+
+    // Production patterns (more strict)
     const suspiciousPatterns = [
       /bot/gi,
       /crawler/gi,

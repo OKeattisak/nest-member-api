@@ -18,6 +18,9 @@ const appConfigSchema = z.object({
   cspEnabled: z.boolean().default(true),
   hstsEnabled: z.boolean().default(true),
   hstsMaxAge: z.number().positive().default(31536000), // seconds
+  enableStrictIpValidation: z.boolean().default(true),
+  enableStrictMaliciousPatternDetection: z.boolean().default(true),
+  enableStrictUserAgentValidation: z.boolean().default(true),
 });
 
 export type AppConfigType = z.infer<typeof appConfigSchema>;
@@ -40,6 +43,9 @@ export default registerAs('app', (): AppConfigType => {
     cspEnabled: process.env.CSP_ENABLED !== 'false',
     hstsEnabled: process.env.HSTS_ENABLED !== 'false',
     hstsMaxAge: parseInt(process.env.HSTS_MAX_AGE || '31536000', 10),
+    enableStrictIpValidation: process.env.ENABLE_STRICT_IP_VALIDATION !== 'false',
+    enableStrictMaliciousPatternDetection: process.env.ENABLE_STRICT_MALICIOUS_PATTERN_DETECTION !== 'false',
+    enableStrictUserAgentValidation: process.env.ENABLE_STRICT_USER_AGENT_VALIDATION !== 'false',
   };
 
   return appConfigSchema.parse(config);

@@ -82,40 +82,42 @@ export class SecurityMiddleware implements NestMiddleware {
         });
       }
 
-      // Validate IP address
-      if (clientIp !== 'unknown' && !this.securityService.isValidIpAddress(clientIp)) {
+      // Validate IP address (only if strict validation is enabled)
+      if (appConfig.enableStrictIpValidation && clientIp !== 'unknown' && !this.securityService.isValidIpAddress(clientIp)) {
         this.logger.warn('Invalid IP address detected', 'SecurityMiddleware', {
           operation: 'invalid_ip_detection',
           metadata: { ip: clientIp },
         });
       }
 
-      // Validate User-Agent
-      if (!this.securityService.isValidUserAgent(userAgent)) {
+      // Validate User-Agent (only if strict validation is enabled)
+      if (appConfig.enableStrictUserAgentValidation && !this.securityService.isValidUserAgent(userAgent)) {
         this.securityAuditService.logSuspiciousUserAgent(userAgent, clientIp, req.url);
       }
 
-      // Check for malicious patterns in URL and query parameters
-      const fullUrl = req.url + JSON.stringify(req.query);
-      if (this.securityService.containsMaliciousPatterns(fullUrl)) {
-        this.securityAuditService.logMaliciousRequest(
-          clientIp,
-          req.url,
-          'URL/Query parameters',
-          userAgent,
-        );
-        
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'MALICIOUS_REQUEST',
-            message: 'Request contains potentially malicious content',
-          },
-          meta: {
-            timestamp: new Date().toISOString(),
-            traceId: req.headers['x-trace-id'] || 'unknown',
-          },
-        });
+      // Check for malicious patterns in URL and query parameters (only if strict detection is enabled)
+      if (appConfig.enableStrictMaliciousPatternDetection) {
+        const fullUrl = req.url + JSON.stringify(req.query);
+        if (this.securityService.containsMaliciousPatterns(fullUrl)) {
+          this.securityAuditService.logMaliciousRequest(
+            clientIp,
+            req.url,
+            'URL/Query parameters',
+            userAgent,
+          );
+          
+          return res.status(400).json({
+            success: false,
+            error: {
+              code: 'MALICIOUS_REQUEST',
+              message: 'Request contains potentially malicious content',
+            },
+            meta: {
+              timestamp: new Date().toISOString(),
+              traceId: req.headers['x-trace-id'] || 'unknown',
+            },
+          });
+        }
       }
 
       // Check for suspicious headers
@@ -128,28 +130,31 @@ export class SecurityMiddleware implements NestMiddleware {
         'forwarded',
       ];
 
-      for (const header of suspiciousHeaders) {
-        const headerValue = req.headers[header];
-        if (headerValue && typeof headerValue === 'string') {
-          if (this.securityService.containsMaliciousPatterns(headerValue)) {
-            this.securityAuditService.logMaliciousRequest(
-              clientIp,
-              req.url,
-              `Header: ${header}`,
-              userAgent,
-            );
-            
-            return res.status(400).json({
-              success: false,
-              error: {
-                code: 'MALICIOUS_REQUEST',
-                message: 'Request contains potentially malicious content',
-              },
-              meta: {
-                timestamp: new Date().toISOString(),
-                traceId: req.headers['x-trace-id'] || 'unknown',
-              },
-            });
+      // Check for suspicious headers (only if strict detection is enabled)
+      if (appConfig.enableStrictMaliciousPatternDetection) {
+        for (const header of suspiciousHeaders) {
+          const headerValue = req.headers[header];
+          if (headerValue && typeof headerValue === 'string') {
+            if (this.securityService.containsMaliciousPatterns(headerValue)) {
+              this.securityAuditService.logMaliciousRequest(
+                clientIp,
+                req.url,
+                `Header: ${header}`,
+                userAgent,
+              );
+              
+              return res.status(400).json({
+                success: false,
+                error: {
+                  code: 'MALICIOUS_REQUEST',
+                  message: 'Request contains potentially malicious content',
+                },
+                meta: {
+                  timestamp: new Date().toISOString(),
+                  traceId: req.headers['x-trace-id'] || 'unknown',
+                },
+              });
+            }
           }
         }
       }
